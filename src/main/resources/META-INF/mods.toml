@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="GPL-3.0-only"
+
+[[mods]]
+modId="dangerousstructures"
+version="${mod_version}"
+displayName="Dangerous Structures"
+authors="Otectus"
+description='''
+Forces hostile mob spawns inside selected structures as if light level is 0, regardless of time or light.
+Structures become permanent mob hotbeds — villages, temples, fortresses, etc. spawn hostiles around the clock.
+'''
+
+[[dependencies.dangerousstructures]]
+modId="forge"
+mandatory=true
+versionRange="[47,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.dangerousstructures]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.21)"
+ordering="NONE"
+side="BOTH"

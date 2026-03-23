@@ -1,0 +1,28 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.settings/
+.classpath
+.project
+.vscode/
+*.swp
+*.swo
+*~
+
+# Minecraft / Forge
+run/
+.mixin.out/
+logs/
+eclipse/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Internal docs
+PLAN.md
