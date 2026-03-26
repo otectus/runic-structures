@@ -88,4 +88,8 @@ jar {
     }
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
 jar.finalizedBy('reobfJar')

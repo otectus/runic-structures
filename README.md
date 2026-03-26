@@ -4,20 +4,41 @@ A Minecraft Forge mod that transforms structures into hostile territory. All str
 
 ## Features
 
+### Core
 - **Automatic structure detection** — All registered structures (including modded) are dangerous by default
 - **Village exclusion** — Villages are excluded by default, with a toggle to include them
-- **Structure whitelist/blacklist** — Fine-grained control over which structures are affected
-- **Structure tag support** — Target or exclude entire groups of structures by tag
+- **Structure whitelist/blacklist** — Fine-grained control by ID or tag
 - **Mob whitelist/blacklist** — Control which hostile mobs can spawn
-- **Periodic spawning** — Optional forced spawning during daytime when vanilla wouldn't attempt spawns
 - **Dimension filtering** — Choose which dimensions are affected
 - **Buffer radius** — Expand structure boundaries for spawn detection
-- **Fully server-side** — No client installation required; works on dedicated servers
+- **Fully server-side** — No client installation required
+
+### Spawning (v1.1.0)
+- **Structure piece-aware spawning** — Targets individual rooms and corridors instead of the full bounding box
+- **Column-based floor finding** — Efficient vertical scanning for valid spawn positions
+- **Pack spawning** — Mobs spawn in groups matching vanilla pack sizes
+- **Vanilla spawn weights** — Respects biome mob probabilities
+- **Hazard avoidance** — Skips lava and water positions
+- **Difficulty scaling** — Spawn cap and interval scale with Easy/Normal/Hard
+- **Night spawn boost** — Configurable faster spawning at night
+- **Min player distance** — Prevents mobs spawning on top of players
+
+### New in v1.1.0
+- **Initial population** — 3-6 mobs spawn throughout a structure the first time it's discovered each session
+- **Armor system** — Mod-spawned mobs are equipped with randomized armor (configurable tiers and drop chance)
+- **Sunlight immunity** — Mod-spawned mobs receive permanent Fire Resistance to survive outside structures
+- **Admin commands** — `/ds status`, `/ds info`, `/ds list`, `/ds reload`, `/ds debug`, `/ds spawns`
+- **Elite mob spawns** — Rare enhanced mobs with boosted stats, glow, and bonus XP
+- **Environmental effects** — Darkness effect and ambient sounds inside structures (opt-in)
+- **Mob persistence** — Optional flag to prevent spawned mobs from despawning
+- **Mod API** — Public API for other mods to register structures as dangerous
+- **Config validation** — Warns about invalid structure/mob IDs on server start
 
 ## Requirements
 
 | | Version |
 |---|---|
+| Mod | 1.1.0 |
 | Minecraft | 1.20.1 |
 | Forge | 47.2.0+ |
 | Java | 17+ |
@@ -29,6 +50,19 @@ A Minecraft Forge mod that transforms structures into hostile territory. All str
 3. Place the JAR in your `mods/` folder
 4. Launch the game — config generates on first server start
 
+## Commands
+
+All commands require OP level 2. Available under `/dangerousstructures` or the alias `/ds`.
+
+| Command | Description |
+|---------|-------------|
+| `/ds status` | Show mod status, config summary |
+| `/ds info` | Show which dangerous structure(s) contain your position |
+| `/ds list` | List nearby dangerous structures |
+| `/ds reload` | Force-invalidate all caches |
+| `/ds debug [on/off]` | Toggle debug logging at runtime |
+| `/ds spawns` | Show spawn statistics |
+
 ## Configuration
 
 The config file is generated at `world/serverconfig/dangerousstructures-server.toml` on first world load.
@@ -37,92 +71,135 @@ The config file is generated at `world/serverconfig/dangerousstructures-server.t
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `enabled` | Boolean | `true` | Master enable/disable for the mod |
-| `autoDetectStructures` | Boolean | `true` | Automatically treat ALL registered structures as dangerous. When enabled, whitelist options are ignored. Modded structures are included automatically. |
-| `includeVillages` | Boolean | `false` | Include village structures when auto-detect is enabled. Has no effect when auto-detect is disabled. |
+| `enabled` | Boolean | `true` | Master enable/disable |
+| `autoDetectStructures` | Boolean | `true` | Auto-detect all structures. When enabled, whitelists are ignored. |
+| `includeVillages` | Boolean | `false` | Include villages when auto-detect is enabled |
 
 ### Structure Filtering
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `structureWhitelist` | List | `["minecraft:fortress", "minecraft:stronghold", "minecraft:monument"]` | Structure IDs to make dangerous. Only used when `autoDetectStructures` is disabled. |
-| `structureTagWhitelist` | List | `[]` | Structure tags to include. Only used when `autoDetectStructures` is disabled. |
-| `structureBlacklist` | List | `[]` | Structure IDs to NEVER make dangerous. Applied in all modes. |
-| `structureTagBlacklist` | List | `[]` | Structure tags to NEVER make dangerous. Applied in all modes. |
+| `structureWhitelist` | List | `["minecraft:fortress", ...]` | Structure IDs to make dangerous (manual mode only) |
+| `structureTagWhitelist` | List | `[]` | Structure tags to include (manual mode only) |
+| `structureBlacklist` | List | `[]` | Structure IDs to NEVER make dangerous (all modes) |
+| `structureTagBlacklist` | List | `[]` | Structure tags to NEVER make dangerous (all modes) |
 
 ### Mob Filtering
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `mobWhitelist` | List | `[]` | If non-empty, ONLY these mob IDs will be force-spawned. Takes priority over blacklist. |
-| `mobBlacklist` | List | `[]` | Mob IDs to exclude from forced spawning. |
+| `mobWhitelist` | List | `[]` | If non-empty, ONLY these mobs spawn. Priority over blacklist. |
+| `mobBlacklist` | List | `["minecraft:ender_dragon", "minecraft:wither"]` | Mobs to exclude |
+| `dimensionSpecificMobs` | Boolean | `true` | Pick mobs from the current biome's spawn list |
 
 ### Other Settings
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `allowedDimensions` | List | `["minecraft:overworld", "minecraft:the_nether", "minecraft:the_end"]` | Dimensions where the mod is active. |
-| `bufferRadius` | Integer (0-16) | `0` | Extra blocks around structure bounding boxes to consider "inside". 0 = strict bounding box. |
-| `debugLogging` | Boolean | `false` | Log each spawn override to the server console. |
+| `allowedDimensions` | List | `["minecraft:overworld", ...]` | Active dimensions |
+| `bufferRadius` | Integer (0-16) | `0` | Extra blocks around structure bounds |
+| `debugLogging` | Boolean | `false` | Log each spawn to console |
 
 ### Periodic Spawning
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `periodicSpawning.enabled` | Boolean | `false` | Enable periodic forced spawning inside dangerous structures during daytime. |
-| `periodicSpawning.spawnInterval` | Integer (20-6000) | `200` | Ticks between periodic spawn attempts. 20 ticks = 1 second. |
-| `periodicSpawning.spawnCapPerStructure` | Integer (1-64) | `8` | Maximum hostile mobs the periodic spawner will maintain per structure. |
+| `enabled` | Boolean | `true` | Enable periodic forced spawning during daytime |
+| `spawnInterval` | Integer (20-6000) | `200` | Ticks between spawn attempts |
+| `spawnCapPerStructure` | Integer (1-64) | `8` | Max hostile mobs per structure |
+| `maxPositionAttempts` | Integer (1-20) | `10` | Position attempts per spawn cycle |
+| `minPlayerDistance` | Integer (0-48) | `6` | Min distance from players for spawns |
+| `chunkSearchRadius` | Integer (2-8) | `4` | Chunk radius to search for structures |
+| `randomizeInterval` | Boolean | `true` | Add jitter to prevent synchronized waves |
+| `useStructurePieces` | Boolean | `true` | Spawn within individual structure pieces |
+| `weightPiecesByArea` | Boolean | `true` | Prefer larger pieces (rooms) for spawning |
+| `useVanillaSpawnWeights` | Boolean | `true` | Respect biome spawn weight probabilities |
+| `packSpawning` | Boolean | `true` | Spawn mobs in packs |
+| `maxPackSize` | Integer (1-8) | `4` | Maximum pack size |
+| `scaleCapByStructureSize` | Boolean | `false` | Scale cap by structure footprint |
+| `mobsPerChunkArea` | Integer (1-16) | `3` | Mobs per 16x16 area (when scaling) |
+| `maxScaledCap` | Integer (1-128) | `32` | Absolute max cap (when scaling) |
+| `sunlightImmunity` | Boolean | `true` | Grant Fire Resistance to mod-spawned mobs |
+| `persistentMobs` | Boolean | `false` | Prevent spawned mobs from despawning |
+| `nightSpawnMultiplier` | Double (1.0-4.0) | `1.0` | Night spawn rate multiplier |
+| `initialPopulationEnabled` | Boolean | `true` | Spawn a group of mobs when a structure is first discovered |
+| `initialPopulationMin` | Integer (1-16) | `3` | Minimum mobs for initial population |
+| `initialPopulationMax` | Integer (1-32) | `6` | Maximum mobs for initial population |
 
-## Usage Examples
+### Armor
 
-### Default (auto-detect all structures, exclude villages)
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `armorEnabled` | Boolean | `true` | Equip mod-spawned mobs with randomized armor |
+| `armorDropChance` | Double (0.0-1.0) | `0.085` | Drop chance per armor piece on death |
+| `allowLeather` | Boolean | `true` | Include leather armor in the pool |
+| `allowChainmail` | Boolean | `true` | Include chainmail armor in the pool |
+| `allowIron` | Boolean | `true` | Include iron armor in the pool |
+| `allowGold` | Boolean | `true` | Include gold armor in the pool |
+| `allowDiamond` | Boolean | `true` | Include diamond armor in the pool |
+| `allowNetherite` | Boolean | `false` | Include netherite armor in the pool |
 
-No configuration needed. All structures except villages are dangerous out of the box.
+### Difficulty Scaling
 
-### Include villages too
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | Boolean | `true` | Enable difficulty-based scaling |
+| `easyCapMultiplier` | Double (0.1-4.0) | `0.5` | Cap multiplier on Easy |
+| `normalCapMultiplier` | Double (0.1-4.0) | `1.0` | Cap multiplier on Normal |
+| `hardCapMultiplier` | Double (0.1-4.0) | `1.5` | Cap multiplier on Hard |
+| `easyIntervalMultiplier` | Double (0.25-4.0) | `1.5` | Interval multiplier on Easy (higher = slower) |
+| `normalIntervalMultiplier` | Double (0.25-4.0) | `1.0` | Interval multiplier on Normal |
+| `hardIntervalMultiplier` | Double (0.25-4.0) | `0.75` | Interval multiplier on Hard (lower = faster) |
 
-```toml
-[general]
-    includeVillages = true
+### Environmental Effects
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `applyDarknessEffect` | Boolean | `false` | Apply Darkness effect to players in structures |
+| `darknessAmplifier` | Integer (0-4) | `0` | Darkness effect amplifier level |
+| `playAmbientSounds` | Boolean | `false` | Play ominous cave sounds in structures |
+| `ambientSoundInterval` | Integer (40-2400) | `400` | Ticks between ambient sounds |
+
+### Elite Spawns
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | Boolean | `false` | Enable rare elite mob spawns |
+| `spawnChance` | Double (0.0-1.0) | `0.02` | Chance for each spawn to be elite |
+| `healthMultiplier` | Double (1.0-10.0) | `2.0` | Elite health multiplier |
+| `damageMultiplier` | Double (1.0-10.0) | `1.5` | Elite damage multiplier |
+| `glowingEffect` | Boolean | `true` | Elite mobs glow through walls |
+| `namePrefix` | String | `"Elite"` | Custom name prefix for elite mobs |
+| `bonusXP` | Integer (0-500) | `20` | Bonus XP when an elite is killed by a player |
+
+## API
+
+Other mods can interact with Dangerous Structures via `DangerousStructuresAPI`:
+
+```java
+import com.otectus.dangerousstructures.api.DangerousStructuresAPI;
+
+// Register a structure as dangerous
+DangerousStructuresAPI.registerDangerousStructure(new ResourceLocation("mymod", "my_dungeon"));
+
+// Check if a position is dangerous
+boolean dangerous = DangerousStructuresAPI.isPositionDangerous(serverLevel, blockPos);
+
+// Unregister
+DangerousStructuresAPI.unregisterDangerousStructure(new ResourceLocation("mymod", "my_dungeon"));
 ```
 
-### Manual mode with specific structures
+## How It Works
 
-```toml
-[general]
-    autoDetectStructures = false
+The mod uses three complementary mechanisms:
 
-[structures]
-    structureWhitelist = ["minecraft:fortress", "minecraft:stronghold", "minecraft:monument", "minecraft:ancient_city"]
-    structureTagWhitelist = ["minecraft:village"]
-```
+1. **Initial population** — When a structure is first discovered each session, 3-6 mobs are immediately spawned throughout its rooms and corridors. Uses aggressive position-finding (50 scan attempts) with distributed placement across structure pieces so mobs are spread naturally, not clustered.
 
-### Auto-detect but exclude specific structures
+2. **Spawn event interception** — Hooks into Forge's `MobSpawnEvent.SpawnPlacementCheck` and `MobSpawnEvent.PositionCheck` to force-allow hostile mob spawns inside dangerous structures, bypassing light level and time-of-day checks.
 
-```toml
-[general]
-    autoDetectStructures = true
+3. **Periodic spawning** — A server tick handler that maintains mob presence inside structures at configurable intervals. Uses structure piece-aware targeting, column-based floor finding, pack spawning, and hazard avoidance for efficient, natural-feeling spawns.
 
-[structures]
-    structureBlacklist = ["minecraft:igloo", "minecraft:trail_ruins"]
-    structureTagBlacklist = ["minecraft:ocean_ruin"]
-```
-
-### Only spawn zombies and skeletons
-
-```toml
-[mobs]
-    mobWhitelist = ["minecraft:zombie", "minecraft:skeleton"]
-```
-
-### Enable daytime spawning
-
-```toml
-[periodicSpawning]
-    enabled = true
-    spawnInterval = 100
-    spawnCapPerStructure = 12
-```
+All mod-spawned mobs are equipped with randomized armor and granted Fire Resistance for sunlight immunity. Structure detection uses Minecraft's `StructureManager` with a fast-reject gate (`hasAnyStructureAt`) for efficient cross-chunk lookups.
 
 ## Building from Source
 
@@ -133,16 +210,6 @@ cd Dangerous-Structures
 ```
 
 The built JAR will be in `build/libs/`.
-
-## How It Works
-
-The mod uses two complementary mechanisms:
-
-1. **Spawn event interception** — Hooks into Forge's `MobSpawnEvent.SpawnPlacementCheck` to force-allow hostile mob spawns inside dangerous structures, bypassing light level and time-of-day checks.
-
-2. **Periodic spawning** (optional) — A server tick handler that independently spawns hostile mobs inside structures at configurable intervals, enabling daytime spawns when vanilla wouldn't attempt them. Mobs are properly initialized with equipment and difficulty-scaled stats.
-
-Structure detection uses Minecraft's built-in `StructureManager` for efficient, cross-chunk lookups that work correctly with large multi-chunk structures like fortresses and strongholds.
 
 ## License
 

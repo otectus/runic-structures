@@ -1,5 +1,6 @@
 package com.otectus.dangerousstructures.util;
 
+import com.otectus.dangerousstructures.api.DangerousStructuresAPI;
 import com.otectus.dangerousstructures.config.DSConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -14,12 +15,25 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.ServerLevelAccessor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class StructureDetection {
 
     private static final TagKey<Structure> VILLAGE_TAG =
             TagKey.create(Registries.STRUCTURE, new ResourceLocation("minecraft", "village"));
+
+    // Cache of non-excluded structures — invalidated on config reload and server stop
+    private static volatile List<Structure> cachedNonExcludedStructures = null;
+
+    public static void invalidateCache() {
+        cachedNonExcludedStructures = null;
+    }
+
+    public static void onServerStopped() {
+        cachedNonExcludedStructures = null;
+    }
 
     /**
      * Check if a structure should be excluded based on blacklist and village settings.
@@ -88,16 +102,47 @@ public class StructureDetection {
             }
         }
 
+        // Check API-registered structures
+        for (ResourceLocation rl : DangerousStructuresAPI.getRegisteredStructuresInternal()) {
+            Structure structure = registry.get(rl);
+            if (structure == null) continue;
+            if (isInsideStructure(structureManager, structure, pos, buffer)) {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    /**
+     * Get the cached list of all non-excluded (dangerous) structures.
+     * Used by both StructureDetection and TickSpawnHandler to share the same cache.
+     */
+    public static List<Structure> getDangerousStructures(Registry<Structure> registry) {
+        List<Structure> structures = cachedNonExcludedStructures;
+        if (structures == null) {
+            List<Structure> building = new ArrayList<>();
+            for (var entry : registry.entrySet()) {
+                if (!isStructureExcluded(registry, entry.getValue())) {
+                    building.add(entry.getValue());
+                }
+            }
+            structures = List.copyOf(building);
+            cachedNonExcludedStructures = structures;
+        }
+        return structures;
     }
 
     private static boolean isInAnyStructure(StructureManager structureManager,
             Registry<Structure> registry, BlockPos pos, int buffer) {
-        for (var entry : registry.entrySet()) {
-            Structure structure = entry.getValue();
+        List<Structure> structures = getDangerousStructures(registry);
 
-            if (isStructureExcluded(registry, structure)) continue;
+        // Fast-reject: if no structure at all contains this position, skip per-structure iteration
+        if (buffer == 0 && !structureManager.hasAnyStructureAt(pos)) {
+            return false;
+        }
 
+        for (Structure structure : structures) {
             if (isInsideStructure(structureManager, structure, pos, buffer)) {
                 return true;
             }
