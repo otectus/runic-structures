@@ -7,6 +7,7 @@ import com.otectus.dangerousstructures.event.TickSpawnHandler;
 import com.otectus.dangerousstructures.util.StructureDetection;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -20,6 +21,9 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Mod(DangerousStructures.MOD_ID)
 public class DangerousStructures {
@@ -75,40 +79,59 @@ public class DangerousStructures {
         }
 
         private static void validateConfig(ServerStartedEvent evt) {
-            var registryAccess = evt.getServer().registryAccess();
-
-            // Validate structure IDs
-            var structureRegistry = registryAccess.registryOrThrow(Registries.STRUCTURE);
-            for (ResourceLocation rl : DSConfig.getStructureWhitelist()) {
-                if (!structureRegistry.containsKey(rl)) {
-                    LOGGER.warn("[DangerousStructures] Unknown structure '{}' in structureWhitelist", rl);
-                }
-            }
-            for (ResourceLocation rl : DSConfig.getStructureBlacklist()) {
-                if (!structureRegistry.containsKey(rl)) {
-                    LOGGER.warn("[DangerousStructures] Unknown structure '{}' in structureBlacklist", rl);
-                }
-            }
-
-            // Validate mob IDs
-            for (ResourceLocation rl : DSConfig.getMobWhitelist()) {
-                if (!ForgeRegistries.ENTITY_TYPES.containsKey(rl)) {
-                    LOGGER.warn("[DangerousStructures] Unknown entity '{}' in mobWhitelist", rl);
-                }
-            }
-            for (ResourceLocation rl : DSConfig.getMobBlacklist()) {
-                if (!ForgeRegistries.ENTITY_TYPES.containsKey(rl)) {
-                    LOGGER.warn("[DangerousStructures] Unknown entity '{}' in mobBlacklist", rl);
-                }
-            }
-
-            // Warn about contradictory config
-            if (!DSConfig.autoDetectStructures.get()
-                    && DSConfig.getStructureWhitelist().isEmpty()
-                    && DSConfig.getStructureTagWhitelist().isEmpty()) {
-                LOGGER.warn("[DangerousStructures] autoDetectStructures is disabled but both whitelists are empty — mod will have no effect");
+            List<String> warnings = runConfigValidation(evt.getServer());
+            for (String warning : warnings) {
+                LOGGER.warn("[DangerousStructures] {}", warning);
             }
         }
+    }
+
+    /**
+     * Run config validation against registries and return a list of warning messages.
+     * Used by both server startup validation and the /ds validate command.
+     */
+    public static List<String> runConfigValidation(MinecraftServer server) {
+        List<String> warnings = new ArrayList<>();
+        var registryAccess = server.registryAccess();
+
+        // Validate structure IDs
+        var structureRegistry = registryAccess.registryOrThrow(Registries.STRUCTURE);
+        for (ResourceLocation rl : DSConfig.getStructureWhitelist()) {
+            if (!structureRegistry.containsKey(rl)) {
+                warnings.add("Unknown structure '" + rl + "' in structureWhitelist");
+            }
+        }
+        for (ResourceLocation rl : DSConfig.getStructureBlacklist()) {
+            if (!structureRegistry.containsKey(rl)) {
+                warnings.add("Unknown structure '" + rl + "' in structureBlacklist");
+            }
+        }
+
+        // Validate mob IDs
+        for (ResourceLocation rl : DSConfig.getMobWhitelist()) {
+            if (!ForgeRegistries.ENTITY_TYPES.containsKey(rl)) {
+                warnings.add("Unknown entity '" + rl + "' in mobWhitelist");
+            }
+        }
+        for (ResourceLocation rl : DSConfig.getMobBlacklist()) {
+            if (!ForgeRegistries.ENTITY_TYPES.containsKey(rl)) {
+                warnings.add("Unknown entity '" + rl + "' in mobBlacklist");
+            }
+        }
+
+        // Warn about contradictory config
+        if (!DSConfig.autoDetectStructures.get()
+                && DSConfig.getStructureWhitelist().isEmpty()
+                && DSConfig.getStructureTagWhitelist().isEmpty()) {
+            warnings.add("autoDetectStructures is disabled but both whitelists are empty — mod will have no effect");
+        }
+
+        // Cross-option dependency warnings
+        if (DSConfig.useVanillaSpawnWeights.get() && !DSConfig.dimensionSpecificMobs.get()) {
+            warnings.add("useVanillaSpawnWeights has no effect when dimensionSpecificMobs is disabled");
+        }
+
+        return warnings;
     }
 
     @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)

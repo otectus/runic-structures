@@ -72,6 +72,11 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 jar {

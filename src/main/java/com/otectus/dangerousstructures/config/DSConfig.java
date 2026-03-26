@@ -78,7 +78,7 @@ public class DSConfig {
     public static final BooleanValue allowNetherite;
 
     // Mob behavior
-    public static final BooleanValue sunlightImmunity;
+    public static final BooleanValue fireImmunity;
     public static final BooleanValue persistentMobs;
 
     // Night spawn boost
@@ -97,6 +97,17 @@ public class DSConfig {
     public static final DoubleValue easyIntervalMultiplier;
     public static final DoubleValue normalIntervalMultiplier;
     public static final DoubleValue hardIntervalMultiplier;
+
+    // Runtime debug toggle — set by /ds debug, not reset by config reload
+    private static volatile boolean runtimeDebug = false;
+
+    public static boolean isDebugEnabled() {
+        return runtimeDebug || debugLogging.get();
+    }
+
+    public static void setRuntimeDebug(boolean enabled) {
+        runtimeDebug = enabled;
+    }
 
     // Parsed caches — rebuilt on config load/reload
     private static volatile Set<ResourceLocation> parsedStructureWhitelist = Collections.emptySet();
@@ -235,7 +246,8 @@ public class DSConfig {
         minPlayerDistance = builder
                 .comment("Minimum distance (blocks) from any player for periodic spawns",
                         "Prevents mobs from spawning directly on top of players",
-                        "0 = no minimum distance")
+                        "0 = no minimum distance",
+                        "Note: Initial population ignores this setting to guarantee structures are populated on discovery")
                 .defineInRange("minPlayerDistance", 6, 0, 48);
 
         chunkSearchRadius = builder
@@ -258,7 +270,8 @@ public class DSConfig {
 
         useVanillaSpawnWeights = builder
                 .comment("Respect vanilla biome spawn weights when picking mob types",
-                        "When false, all eligible mobs are equally likely")
+                        "When false, all eligible mobs are equally likely",
+                        "Note: Only applies when dimensionSpecificMobs is enabled")
                 .define("useVanillaSpawnWeights", true);
 
         packSpawning = builder
@@ -283,10 +296,10 @@ public class DSConfig {
                 .comment("When scaleCapByStructureSize is enabled, absolute maximum cap")
                 .defineInRange("maxScaledCap", 32, 1, 128);
 
-        sunlightImmunity = builder
-                .comment("Make mod-spawned mobs immune to burning in sunlight",
-                        "Grants permanent Fire Resistance (also prevents lava/fire damage)")
-                .define("sunlightImmunity", true);
+        fireImmunity = builder
+                .comment("Grant mod-spawned mobs permanent Fire Resistance",
+                        "Prevents undead from burning in sunlight AND makes all mobs immune to fire, lava, and Fire Aspect")
+                .define("fireImmunity", true);
 
         persistentMobs = builder
                 .comment("Make periodic-spawned mobs persistent (never despawn)",
@@ -300,7 +313,8 @@ public class DSConfig {
 
         initialPopulationEnabled = builder
                 .comment("Spawn a group of mobs when a structure is first discovered each session",
-                        "Guarantees structures are populated even when periodic spawning is unreliable")
+                        "Guarantees structures are populated even when periodic spawning is unreliable",
+                        "Note: Ignores minPlayerDistance to ensure mobs are present when players arrive")
                 .define("initialPopulationEnabled", true);
 
         initialPopulationMin = builder

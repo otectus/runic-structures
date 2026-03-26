@@ -2,11 +2,10 @@ package com.otectus.dangerousstructures.event;
 
 import com.otectus.dangerousstructures.DangerousStructures;
 import com.otectus.dangerousstructures.config.DSConfig;
+import com.otectus.dangerousstructures.util.MobEnhancer;
 import com.otectus.dangerousstructures.util.StructureDetection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
@@ -30,7 +29,7 @@ public class SpawnEventHandler {
         if (StructureDetection.isInDangerousStructure(evt.getLevel(), evt.getPos())) {
             evt.setResult(Event.Result.ALLOW);
 
-            if (DSConfig.debugLogging.get()) {
+            if (DSConfig.isDebugEnabled()) {
                 DangerousStructures.LOGGER.info("[DangerousStructures] Forced placement of {} at {}",
                         evt.getEntityType().getDescriptionId(), evt.getPos());
             }
@@ -49,7 +48,7 @@ public class SpawnEventHandler {
         if (StructureDetection.isInDangerousStructure(evt.getLevel(), pos)) {
             evt.setResult(Event.Result.ALLOW);
 
-            if (DSConfig.debugLogging.get()) {
+            if (DSConfig.isDebugEnabled()) {
                 DangerousStructures.LOGGER.info("[DangerousStructures] Forced spawn of {} at {}",
                         evt.getEntity().getType().getDescriptionId(), pos);
             }
@@ -57,8 +56,8 @@ public class SpawnEventHandler {
     }
 
     /**
-     * Apply enhancements (armor, sunlight immunity) to hostile mobs spawned inside dangerous structures.
-     * Fires after vanilla finalization for both periodic spawns and event-intercepted spawns.
+     * Apply enhancements (armor, fire immunity) to hostile mobs spawned inside dangerous structures.
+     * Only fires for event-intercepted spawns; periodic/initial spawns are tagged and skipped.
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onFinalizeSpawn(MobSpawnEvent.FinalizeSpawn evt) {
@@ -68,17 +67,19 @@ public class SpawnEventHandler {
         if (evt.getSpawnType() != MobSpawnType.NATURAL) return;
         if (!DSConfig.isEntityAllowed(evt.getEntity().getType())) return;
 
+        // Skip mobs already being enhanced by the periodic/initial spawner
+        if (evt.getEntity().getTags().contains("ds_periodic")) return;
+
         BlockPos pos = evt.getEntity().blockPosition();
         if (StructureDetection.isInDangerousStructure(evt.getLevel(), pos)) {
             Mob mob = evt.getEntity();
 
             if (DSConfig.armorEnabled.get()) {
-                TickSpawnHandler.applyRandomArmor(mob, evt.getLevel().getRandom());
+                MobEnhancer.applyRandomArmor(mob, evt.getLevel().getRandom());
             }
 
-            if (DSConfig.sunlightImmunity.get()) {
-                mob.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE,
-                        Integer.MAX_VALUE, 0, true, false, false));
+            if (DSConfig.fireImmunity.get()) {
+                MobEnhancer.applyFireResistance(mob);
             }
         }
     }

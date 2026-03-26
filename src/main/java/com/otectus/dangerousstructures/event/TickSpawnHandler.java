@@ -2,6 +2,9 @@ package com.otectus.dangerousstructures.event;
 
 import com.otectus.dangerousstructures.DangerousStructures;
 import com.otectus.dangerousstructures.config.DSConfig;
+import com.otectus.dangerousstructures.util.MobEnhancer;
+import com.otectus.dangerousstructures.util.MobSelector;
+import com.otectus.dangerousstructures.util.SpawnPositionFinder;
 import com.otectus.dangerousstructures.util.StructureDetection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,19 +19,10 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -40,23 +34,22 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Mod.EventBusSubscriber(modid = DangerousStructures.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class TickSpawnHandler {
 
     private static int tickCounter = 0;
 
-    // Spawn statistics
+    // Spawn statistics — all reads and writes occur on the server thread.
+    // Plain int fields are safe here because Forge guarantees single-threaded
+    // server tick execution and commands execute synchronously on the server thread.
     private static int statTotalAttempts = 0;
     private static int statSuccessfulSpawns = 0;
     private static int statCapRejects = 0;
@@ -64,10 +57,9 @@ public class TickSpawnHandler {
     private static int statInitialPopulations = 0;
 
     // Initial population tracking — keyed by structure BB origin, cleared each session
-    private static final Set<BlockPos> populatedStructures = new HashSet<>();
+    private static final Set<BlockPos> populatedStructures = ConcurrentHashMap.newKeySet();
 
-    // Caches — invalidated on config reload and server stop
-    private static volatile List<EntityType<?>> cachedSpawnableMobs = null;
+    // Cache — invalidated on config reload and server stop
     private static volatile List<Structure> cachedDangerousStructures = null;
 
     public static int getStatTotalAttempts() { return statTotalAttempts; }
@@ -77,8 +69,8 @@ public class TickSpawnHandler {
     public static int getStatInitialPopulations() { return statInitialPopulations; }
 
     public static void invalidateCaches() {
-        cachedSpawnableMobs = null;
         cachedDangerousStructures = null;
+        MobSelector.invalidateCache();
     }
 
     public static void onServerStopped() {
@@ -89,8 +81,9 @@ public class TickSpawnHandler {
         statPositionFailures = 0;
         statInitialPopulations = 0;
         populatedStructures.clear();
-        cachedSpawnableMobs = null;
         cachedDangerousStructures = null;
+        MobSelector.invalidateCache();
+        DSConfig.setRuntimeDebug(false);
     }
 
     @SubscribeEvent
@@ -250,13 +243,11 @@ public class TickSpawnHandler {
         int cap = getEffectiveCap(difficulty, structureBB);
 
         // Count existing monsters inside the bounding box (early-exit when cap reached)
-        var entities = level.getEntities(null, new net.minecraft.world.phys.AABB(
-                structureBB.minX(), structureBB.minY(), structureBB.minZ(),
-                structureBB.maxX() + 1, structureBB.maxY() + 1, structureBB.maxZ() + 1
-        ));
         int existingMonsters = 0;
-        for (var e : entities) {
-            if (e.getType().getCategory() == MobCategory.MONSTER) {
+        for (Mob mob : level.getEntitiesOfClass(Mob.class, new net.minecraft.world.phys.AABB(
+                structureBB.minX(), structureBB.minY(), structureBB.minZ(),
+                structureBB.maxX() + 1, structureBB.maxY() + 1, structureBB.maxZ() + 1))) {
+            if (mob.getType().getCategory() == MobCategory.MONSTER) {
                 if (++existingMonsters >= cap) {
                     statCapRejects++;
                     return;
@@ -350,10 +341,10 @@ public class TickSpawnHandler {
             MobSpawnSettings.SpawnerData selectedSpawnerData = null;
             EntityType<?> mobType;
             if (DSConfig.dimensionSpecificMobs.get()) {
-                selectedSpawnerData = pickBiomeSpecificSpawnerData(level, spawnPos, random);
+                selectedSpawnerData = MobSelector.pickBiomeSpecificSpawnerData(level, spawnPos, random);
                 mobType = selectedSpawnerData != null ? selectedSpawnerData.type : null;
             } else {
-                mobType = pickRandomHostileMob(random);
+                mobType = MobSelector.pickRandomHostileMob(random);
             }
             if (mobType == null) continue;
 
@@ -378,7 +369,7 @@ public class TickSpawnHandler {
                 if (p == 0) {
                     packPos = spawnPos;
                 } else {
-                    packPos = findNearbyFloor(level, spawnPos, random, 4);
+                    packPos = SpawnPositionFinder.findNearbyFloor(level, spawnPos, random, SpawnPositionFinder.PACK_SEARCH_RADIUS);
                     if (packPos == null) continue;
                 }
 
@@ -389,6 +380,7 @@ public class TickSpawnHandler {
                         random.nextFloat() * 360.0F, 0.0F);
 
                 if (entity instanceof Mob mob) {
+                    mob.addTag("ds_periodic");
                     var spawnResult = ForgeEventFactory.onFinalizeSpawn(mob, level,
                             level.getCurrentDifficultyAt(packPos), MobSpawnType.NATURAL, null, null);
                     if (spawnResult == null) {
@@ -403,24 +395,23 @@ public class TickSpawnHandler {
 
                     // Elite mob enhancement
                     if (DSConfig.eliteSpawnsEnabled.get() && random.nextDouble() < DSConfig.eliteSpawnChance.get()) {
-                        applyEliteEnhancements(mob);
+                        MobEnhancer.applyEliteEnhancements(mob);
                     }
 
-                    // Direct armor & sunlight immunity — periodic spawner knows the mob
+                    // Direct armor & fire immunity — periodic spawner knows the mob
                     // is inside a structure, so apply without re-checking detection
                     if (DSConfig.armorEnabled.get()) {
-                        applyRandomArmor(mob, random);
+                        MobEnhancer.applyRandomArmor(mob, random);
                     }
-                    if (DSConfig.sunlightImmunity.get()) {
-                        mob.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE,
-                                Integer.MAX_VALUE, 0, true, false, false));
+                    if (DSConfig.fireImmunity.get()) {
+                        MobEnhancer.applyFireResistance(mob);
                     }
                 }
 
                 if (level.addFreshEntity(entity)) {
                     spawned++;
                     statSuccessfulSpawns++;
-                    if (DSConfig.debugLogging.get()) {
+                    if (DSConfig.isDebugEnabled()) {
                         DangerousStructures.LOGGER.info("[DangerousStructures] Periodic spawn of {} at {}",
                                 mobType.getDescriptionId(), packPos);
                     }
@@ -429,6 +420,11 @@ public class TickSpawnHandler {
                 }
             }
             if (spawned > 0) return; // Successfully spawned, done with this structure
+        }
+        if (DSConfig.isDebugEnabled()) {
+            DangerousStructures.LOGGER.info(
+                    "[DangerousStructures] Periodic spawn position finding failed after {} attempts for structure at [{}, {}, {}]",
+                    maxAttempts, structureBB.minX(), structureBB.minY(), structureBB.minZ());
         }
         statPositionFailures++;
     }
@@ -462,7 +458,7 @@ public class TickSpawnHandler {
             }
         }
 
-        for (int attempt = 0; attempt < 50; attempt++) {
+        for (int attempt = 0; attempt < SpawnPositionFinder.INITIAL_POPULATION_SCAN_ATTEMPTS; attempt++) {
             BoundingBox bb;
             int pieceIndex = -1;
             if (usePieces) {
@@ -502,7 +498,7 @@ public class TickSpawnHandler {
         }
 
         if (candidatePositions.isEmpty()) {
-            if (DSConfig.debugLogging.get()) {
+            if (DSConfig.isDebugEnabled()) {
                 DangerousStructures.LOGGER.warn("[DangerousStructures] Initial population failed: no valid positions for structure at [{}, {}, {}]",
                         structureBB.minX(), structureBB.minY(), structureBB.minZ());
             }
@@ -510,7 +506,7 @@ public class TickSpawnHandler {
         }
 
         // Phase 2: Select well-distributed positions
-        List<BlockPos> selectedPositions = selectDistributedPositions(
+        List<BlockPos> selectedPositions = SpawnPositionFinder.selectDistributedPositions(
                 candidatePositions, candidatePieceIndices, targetCount, random);
 
         // Phase 3: Spawn mobs at selected positions
@@ -519,10 +515,10 @@ public class TickSpawnHandler {
             MobSpawnSettings.SpawnerData selectedSpawnerData = null;
             EntityType<?> mobType;
             if (DSConfig.dimensionSpecificMobs.get()) {
-                selectedSpawnerData = pickBiomeSpecificSpawnerData(level, spawnPos, random);
+                selectedSpawnerData = MobSelector.pickBiomeSpecificSpawnerData(level, spawnPos, random);
                 mobType = selectedSpawnerData != null ? selectedSpawnerData.type : null;
             } else {
-                mobType = pickRandomHostileMob(random);
+                mobType = MobSelector.pickRandomHostileMob(random);
             }
             if (mobType == null) continue;
 
@@ -533,6 +529,7 @@ public class TickSpawnHandler {
                     random.nextFloat() * 360.0F, 0.0F);
 
             if (entity instanceof Mob mob) {
+                mob.addTag("ds_periodic");
                 var spawnResult = ForgeEventFactory.onFinalizeSpawn(mob, level,
                         level.getCurrentDifficultyAt(spawnPos), MobSpawnType.NATURAL, null, null);
                 if (spawnResult == null) {
@@ -545,15 +542,14 @@ public class TickSpawnHandler {
                 }
 
                 if (DSConfig.eliteSpawnsEnabled.get() && random.nextDouble() < DSConfig.eliteSpawnChance.get()) {
-                    applyEliteEnhancements(mob);
+                    MobEnhancer.applyEliteEnhancements(mob);
                 }
 
                 if (DSConfig.armorEnabled.get()) {
-                    applyRandomArmor(mob, random);
+                    MobEnhancer.applyRandomArmor(mob, random);
                 }
-                if (DSConfig.sunlightImmunity.get()) {
-                    mob.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE,
-                            Integer.MAX_VALUE, 0, true, false, false));
+                if (DSConfig.fireImmunity.get()) {
+                    MobEnhancer.applyFireResistance(mob);
                 }
             }
 
@@ -567,232 +563,11 @@ public class TickSpawnHandler {
 
         if (spawned > 0) {
             statInitialPopulations++;
-            if (DSConfig.debugLogging.get()) {
+            if (DSConfig.isDebugEnabled()) {
                 DangerousStructures.LOGGER.info("[DangerousStructures] Initial population: spawned {} mobs in structure at [{}, {}, {}]",
                         spawned, structureBB.minX(), structureBB.minY(), structureBB.minZ());
             }
         }
-    }
-
-    /**
-     * Select well-distributed positions from the candidate pool.
-     * Round-robins across structure pieces, picking the farthest candidate from
-     * already-selected positions within each piece.
-     */
-    private static List<BlockPos> selectDistributedPositions(
-            List<BlockPos> candidates, List<Integer> pieceIndices,
-            int targetCount, RandomSource random) {
-
-        if (candidates.size() <= targetCount) {
-            return new ArrayList<>(candidates);
-        }
-
-        // Group candidate indices by piece
-        Map<Integer, List<Integer>> byPiece = new HashMap<>();
-        for (int i = 0; i < candidates.size(); i++) {
-            byPiece.computeIfAbsent(pieceIndices.get(i), k -> new ArrayList<>()).add(i);
-        }
-
-        List<BlockPos> selected = new ArrayList<>();
-        List<Integer> pieceKeys = new ArrayList<>(byPiece.keySet());
-        Collections.shuffle(pieceKeys, new java.util.Random(random.nextLong()));
-
-        int piecePtr = 0;
-        while (selected.size() < targetCount && !pieceKeys.isEmpty()) {
-            int pieceKey = pieceKeys.get(piecePtr % pieceKeys.size());
-            List<Integer> pieceCandidates = byPiece.get(pieceKey);
-
-            if (pieceCandidates.isEmpty()) {
-                pieceKeys.remove(piecePtr % pieceKeys.size());
-                continue;
-            }
-
-            int bestIdx;
-            if (selected.isEmpty()) {
-                bestIdx = pieceCandidates.remove(random.nextInt(pieceCandidates.size()));
-            } else {
-                // Pick the candidate farthest from all already-selected positions
-                int bestListIdx = 0;
-                double bestMinDist = -1;
-                for (int li = 0; li < pieceCandidates.size(); li++) {
-                    BlockPos cand = candidates.get(pieceCandidates.get(li));
-                    double minDist = Double.MAX_VALUE;
-                    for (BlockPos sel : selected) {
-                        double d = cand.distSqr(sel);
-                        if (d < minDist) minDist = d;
-                    }
-                    if (minDist > bestMinDist) {
-                        bestMinDist = minDist;
-                        bestListIdx = li;
-                    }
-                }
-                bestIdx = pieceCandidates.remove(bestListIdx);
-            }
-
-            selected.add(candidates.get(bestIdx));
-            piecePtr++;
-        }
-
-        return selected;
-    }
-
-    /**
-     * Apply elite enhancements to a mob: boosted stats, glow, custom name.
-     */
-    private static void applyEliteEnhancements(Mob mob) {
-        // Boost health
-        AttributeInstance healthAttr = mob.getAttribute(Attributes.MAX_HEALTH);
-        if (healthAttr != null) {
-            double newHealth = healthAttr.getBaseValue() * DSConfig.eliteHealthMultiplier.get();
-            healthAttr.setBaseValue(newHealth);
-            mob.setHealth((float) newHealth);
-        }
-
-        // Boost damage
-        AttributeInstance damageAttr = mob.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (damageAttr != null) {
-            damageAttr.setBaseValue(damageAttr.getBaseValue() * DSConfig.eliteDamageMultiplier.get());
-        }
-
-        // Glowing effect
-        if (DSConfig.eliteGlowingEffect.get()) {
-            mob.setGlowingTag(true);
-        }
-
-        // Custom name
-        String prefix = DSConfig.eliteNamePrefix.get();
-        if (prefix != null && !prefix.isEmpty()) {
-            String mobName = mob.getType().getDescription().getString();
-            mob.setCustomName(Component.literal(prefix + " " + mobName));
-            mob.setCustomNameVisible(true);
-        }
-
-        // Persistence (elites should always persist)
-        mob.setPersistenceRequired();
-
-        // Tag the mob for bonus XP identification
-        mob.addTag("ds_elite");
-    }
-
-    /**
-     * Equip a mob with a full suit of randomized armor from the configured tier pool.
-     * Each armor slot gets an independently randomized material tier.
-     */
-    public static void applyRandomArmor(Mob mob, RandomSource random) {
-        // Build the pool of enabled armor tiers: [helmet, chestplate, leggings, boots]
-        List<Item[]> tiers = new ArrayList<>();
-        if (DSConfig.allowLeather.get())    tiers.add(new Item[]{Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE, Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS});
-        if (DSConfig.allowChainmail.get())  tiers.add(new Item[]{Items.CHAINMAIL_HELMET, Items.CHAINMAIL_CHESTPLATE, Items.CHAINMAIL_LEGGINGS, Items.CHAINMAIL_BOOTS});
-        if (DSConfig.allowIron.get())       tiers.add(new Item[]{Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS});
-        if (DSConfig.allowGold.get())       tiers.add(new Item[]{Items.GOLDEN_HELMET, Items.GOLDEN_CHESTPLATE, Items.GOLDEN_LEGGINGS, Items.GOLDEN_BOOTS});
-        if (DSConfig.allowDiamond.get())    tiers.add(new Item[]{Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS});
-        if (DSConfig.allowNetherite.get())  tiers.add(new Item[]{Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS});
-        if (tiers.isEmpty()) return;
-
-        float dropChance = DSConfig.armorDropChance.get().floatValue();
-        EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-
-        for (int i = 0; i < slots.length; i++) {
-            Item[] tier = tiers.get(random.nextInt(tiers.size()));
-            mob.setItemSlot(slots[i], new ItemStack(tier[i]));
-            mob.setDropChance(slots[i], dropChance);
-        }
-    }
-
-    /**
-     * Find a valid floor position near the given origin, within the given radius.
-     */
-    private static BlockPos findNearbyFloor(ServerLevel level, BlockPos origin, RandomSource random, int radius) {
-        for (int i = 0; i < 4; i++) {
-            int dx = random.nextIntBetweenInclusive(-radius, radius);
-            int dz = random.nextIntBetweenInclusive(-radius, radius);
-            BlockPos candidate = new BlockPos(origin.getX() + dx, origin.getY(), origin.getZ() + dz);
-
-            // Check the Y level and one above/below
-            for (int dy = -1; dy <= 1; dy++) {
-                BlockPos pos = candidate.offset(0, dy, 0);
-                BlockPos below = pos.below();
-                if (level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)
-                        && level.getBlockState(pos).isAir()
-                        && level.getBlockState(pos.above()).isAir()
-                        && !level.getFluidState(below).is(FluidTags.LAVA)
-                        && !level.getFluidState(pos).is(FluidTags.WATER)) {
-                    return pos;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Pick a biome-specific spawner data entry, respecting vanilla spawn weights.
-     */
-    private static MobSpawnSettings.SpawnerData pickBiomeSpecificSpawnerData(
-            ServerLevel level, BlockPos pos, RandomSource random) {
-        List<MobSpawnSettings.SpawnerData> spawners = level.getBiome(pos).value()
-                .getMobSettings().getMobs(MobCategory.MONSTER).unwrap();
-        if (spawners.isEmpty()) return null;
-
-        List<MobSpawnSettings.SpawnerData> eligible = new ArrayList<>();
-        for (MobSpawnSettings.SpawnerData data : spawners) {
-            if (DSConfig.isEntityAllowed(data.type)) {
-                eligible.add(data);
-            }
-        }
-        if (eligible.isEmpty()) return null;
-
-        if (DSConfig.useVanillaSpawnWeights.get()) {
-            // Weighted random selection
-            int totalWeight = 0;
-            for (MobSpawnSettings.SpawnerData data : eligible) {
-                totalWeight += data.getWeight().asInt();
-            }
-            if (totalWeight <= 0) return eligible.get(random.nextInt(eligible.size()));
-
-            int roll = random.nextInt(totalWeight);
-            for (MobSpawnSettings.SpawnerData data : eligible) {
-                roll -= data.getWeight().asInt();
-                if (roll < 0) return data;
-            }
-            return eligible.get(eligible.size() - 1);
-        } else {
-            return eligible.get(random.nextInt(eligible.size()));
-        }
-    }
-
-    private static EntityType<?> pickRandomHostileMob(RandomSource random) {
-        List<EntityType<?>> mobs = getSpawnableMobs();
-        if (mobs.isEmpty()) return null;
-        return mobs.get(random.nextInt(mobs.size()));
-    }
-
-    private static List<EntityType<?>> getSpawnableMobs() {
-        List<EntityType<?>> cached = cachedSpawnableMobs;
-        if (cached != null) return cached;
-
-        Set<ResourceLocation> whitelist = DSConfig.getMobWhitelist();
-        Set<ResourceLocation> blacklist = DSConfig.getMobBlacklist();
-
-        List<EntityType<?>> result;
-        if (!whitelist.isEmpty()) {
-            List<EntityType<?>> list = new ArrayList<>();
-            for (ResourceLocation rl : whitelist) {
-                EntityType<?> et = ForgeRegistries.ENTITY_TYPES.getValue(rl);
-                if (et != null) list.add(et);
-            }
-            result = List.copyOf(list);
-        } else {
-            List<EntityType<?>> list = new ArrayList<>();
-            for (EntityType<?> et : ForgeRegistries.ENTITY_TYPES.getValues()) {
-                if (et.getCategory() != MobCategory.MONSTER) continue;
-                if (!blacklist.isEmpty() && blacklist.contains(EntityType.getKey(et))) continue;
-                list.add(et);
-            }
-            result = List.copyOf(list);
-        }
-
-        cachedSpawnableMobs = result;
-        return result;
     }
 
     private static Iterable<LevelChunk> getLoadedChunks(ServerLevel level) {

@@ -24,9 +24,9 @@ The mod uses three systems that work together to keep structures dangerous:
 
 Mobs spawned by this mod aren't pushovers. They come equipped with **randomized armor** pulled from a configurable tier pool — leather, chainmail, iron, gold, diamond, or even netherite. Each piece has an independent roll, so you might face a zombie in mismatched iron and gold, or a skeleton in full diamond.
 
-Undead mobs also receive **permanent Fire Resistance**, so they won't burn in sunlight if they wander outside. You can't wait them out.
+All mod-spawned mobs also receive **permanent Fire Resistance**, so undead won't burn in sunlight and no mobs can be cheesed with lava traps or Fire Aspect. You can't wait them out.
 
-Armor tiers, drop chances, and sunlight immunity are all configurable.
+Armor tiers, drop chances, and fire immunity are all configurable.
 
 ---
 
@@ -121,7 +121,8 @@ All commands require OP level 2. Use `/dangerousstructures` or the shorthand `/d
 | `/ds status` | View current mod configuration at a glance |
 | `/ds spawns` | View spawn statistics (attempts, successes, failures) |
 | `/ds reload` | Force-refresh all structure caches |
-| `/ds debug [on/off]` | Toggle per-spawn debug logging |
+| `/ds debug [on/off]` | Toggle per-spawn debug logging (survives config reloads) |
+| `/ds validate` | Re-run config validation and report issues in chat |
 
 ---
 

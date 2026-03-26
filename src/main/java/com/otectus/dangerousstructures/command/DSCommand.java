@@ -2,6 +2,7 @@ package com.otectus.dangerousstructures.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.otectus.dangerousstructures.DangerousStructures;
 import com.otectus.dangerousstructures.config.DSConfig;
 import com.otectus.dangerousstructures.event.TickSpawnHandler;
 import com.otectus.dangerousstructures.util.StructureDetection;
@@ -21,9 +22,14 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DSCommand {
+
+    private static final int INFO_SEARCH_HORIZONTAL_RADIUS = 64;
+    private static final int INFO_SEARCH_VERTICAL_RADIUS = 32;
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("dangerousstructures")
@@ -36,6 +42,7 @@ public class DSCommand {
                         .then(Commands.argument("enabled", BoolArgumentType.bool())
                                 .executes(ctx -> toggleDebug(ctx.getSource(), BoolArgumentType.getBool(ctx, "enabled")))))
                 .then(Commands.literal("spawns").executes(ctx -> showSpawnStats(ctx.getSource())))
+                .then(Commands.literal("validate").executes(ctx -> validateConfig(ctx.getSource())))
         );
 
         // Alias
@@ -56,7 +63,7 @@ public class DSCommand {
         source.sendSuccess(() -> Component.literal("Difficulty scaling: " + DSConfig.difficultyScalingEnabled.get()), false);
         source.sendSuccess(() -> Component.literal("Initial population: " + DSConfig.initialPopulationEnabled.get()
                 + " (" + DSConfig.initialPopulationMin.get() + "-" + DSConfig.initialPopulationMax.get() + " mobs)"), false);
-        source.sendSuccess(() -> Component.literal("Debug logging: " + DSConfig.debugLogging.get()), false);
+        source.sendSuccess(() -> Component.literal("Debug logging: " + DSConfig.isDebugEnabled()), false);
         source.sendSuccess(() -> Component.literal("Dimensions: " + DSConfig.allowedDimensions.get()), false);
         return 1;
     }
@@ -100,13 +107,13 @@ public class DSCommand {
         // Count nearby monsters
         int monsterCount = 0;
         var entities = level.getEntities(null, new net.minecraft.world.phys.AABB(
-                pos.getX() - 64, pos.getY() - 32, pos.getZ() - 64,
-                pos.getX() + 64, pos.getY() + 32, pos.getZ() + 64));
+                pos.getX() - INFO_SEARCH_HORIZONTAL_RADIUS, pos.getY() - INFO_SEARCH_VERTICAL_RADIUS, pos.getZ() - INFO_SEARCH_HORIZONTAL_RADIUS,
+                pos.getX() + INFO_SEARCH_HORIZONTAL_RADIUS, pos.getY() + INFO_SEARCH_VERTICAL_RADIUS, pos.getZ() + INFO_SEARCH_HORIZONTAL_RADIUS));
         for (var e : entities) {
             if (e.getType().getCategory() == MobCategory.MONSTER) monsterCount++;
         }
         int count = monsterCount;
-        source.sendSuccess(() -> Component.literal("Nearby monsters (128 block range): " + count).withStyle(ChatFormatting.GRAY), false);
+        source.sendSuccess(() -> Component.literal("Nearby monsters (" + INFO_SEARCH_HORIZONTAL_RADIUS + " block radius): " + count).withStyle(ChatFormatting.GRAY), false);
 
         return 1;
     }
@@ -125,7 +132,7 @@ public class DSCommand {
         int chunkZ = playerPos.getZ() >> 4;
         int radius = DSConfig.chunkSearchRadius.get();
 
-        List<String> found = new ArrayList<>();
+        Set<String> found = new LinkedHashSet<>();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 var chunk = level.getChunkSource().getChunkNow(chunkX + dx, chunkZ + dz);
@@ -140,7 +147,7 @@ public class DSCommand {
                         String status = excluded ? " [excluded]" : " [dangerous]";
                         String desc = entry.getKey().location() + status + " at "
                                 + bb.getCenter().getX() + "," + bb.getCenter().getY() + "," + bb.getCenter().getZ();
-                        if (!found.contains(desc)) found.add(desc);
+                        found.add(desc);
                     }
                 }
             }
@@ -167,10 +174,22 @@ public class DSCommand {
     }
 
     private static int toggleDebug(CommandSourceStack source, boolean enabled) {
-        // Note: This only changes the runtime value, not the config file
-        // The config file value will override this on next reload
-        DSConfig.debugLogging.set(enabled);
-        source.sendSuccess(() -> Component.literal("Debug logging " + (enabled ? "enabled" : "disabled") + " (runtime only)").withStyle(ChatFormatting.YELLOW), false);
+        DSConfig.setRuntimeDebug(enabled);
+        source.sendSuccess(() -> Component.literal("Debug logging " + (enabled ? "enabled" : "disabled")
+                + " (runtime only, survives config reload)").withStyle(ChatFormatting.YELLOW), false);
+        return 1;
+    }
+
+    private static int validateConfig(CommandSourceStack source) {
+        List<String> warnings = DangerousStructures.runConfigValidation(source.getServer());
+        if (warnings.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("Config validation passed — no issues found.").withStyle(ChatFormatting.GREEN), false);
+        } else {
+            source.sendSuccess(() -> Component.literal("Config validation found " + warnings.size() + " issue(s):").withStyle(ChatFormatting.YELLOW), false);
+            for (String warning : warnings) {
+                source.sendSuccess(() -> Component.literal("  - " + warning).withStyle(ChatFormatting.YELLOW), false);
+            }
+        }
         return 1;
     }
 

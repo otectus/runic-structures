@@ -62,6 +62,6 @@ public class DangerousStructuresAPI {
      * Internal: used by StructureDetection to include API-registered structures.
      */
     public static Set<ResourceLocation> getRegisteredStructuresInternal() {
-        return apiRegisteredStructures;
+        return Collections.unmodifiableSet(apiRegisteredStructures);
     }
 }

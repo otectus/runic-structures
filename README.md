@@ -26,8 +26,8 @@ A Minecraft Forge mod that transforms structures into hostile territory. All str
 ### New in v1.1.0
 - **Initial population** — 3-6 mobs spawn throughout a structure the first time it's discovered each session
 - **Armor system** — Mod-spawned mobs are equipped with randomized armor (configurable tiers and drop chance)
-- **Sunlight immunity** — Mod-spawned mobs receive permanent Fire Resistance to survive outside structures
-- **Admin commands** — `/ds status`, `/ds info`, `/ds list`, `/ds reload`, `/ds debug`, `/ds spawns`
+- **Fire immunity** — Mod-spawned mobs receive permanent Fire Resistance to survive outside structures
+- **Admin commands** — `/ds status`, `/ds info`, `/ds list`, `/ds reload`, `/ds debug`, `/ds spawns`, `/ds validate`
 - **Elite mob spawns** — Rare enhanced mobs with boosted stats, glow, and bonus XP
 - **Environmental effects** — Darkness effect and ambient sounds inside structures (opt-in)
 - **Mob persistence** — Optional flag to prevent spawned mobs from despawning
@@ -38,7 +38,7 @@ A Minecraft Forge mod that transforms structures into hostile territory. All str
 
 | | Version |
 |---|---|
-| Mod | 1.1.0 |
+| Mod | 1.1.1 |
 | Minecraft | 1.20.1 |
 | Forge | 47.2.0+ |
 | Java | 17+ |
@@ -60,8 +60,9 @@ All commands require OP level 2. Available under `/dangerousstructures` or the a
 | `/ds info` | Show which dangerous structure(s) contain your position |
 | `/ds list` | List nearby dangerous structures |
 | `/ds reload` | Force-invalidate all caches |
-| `/ds debug [on/off]` | Toggle debug logging at runtime |
+| `/ds debug [on/off]` | Toggle debug logging at runtime (survives config reloads) |
 | `/ds spawns` | Show spawn statistics |
+| `/ds validate` | Re-run config validation and report issues |
 
 ## Configuration
 
@@ -119,7 +120,7 @@ The config file is generated at `world/serverconfig/dangerousstructures-server.t
 | `scaleCapByStructureSize` | Boolean | `false` | Scale cap by structure footprint |
 | `mobsPerChunkArea` | Integer (1-16) | `3` | Mobs per 16x16 area (when scaling) |
 | `maxScaledCap` | Integer (1-128) | `32` | Absolute max cap (when scaling) |
-| `sunlightImmunity` | Boolean | `true` | Grant Fire Resistance to mod-spawned mobs |
+| `fireImmunity` | Boolean | `true` | Grant permanent Fire Resistance (prevents sunlight burning, fire, lava, Fire Aspect) |
 | `persistentMobs` | Boolean | `false` | Prevent spawned mobs from despawning |
 | `nightSpawnMultiplier` | Double (1.0-4.0) | `1.0` | Night spawn rate multiplier |
 | `initialPopulationEnabled` | Boolean | `true` | Spawn a group of mobs when a structure is first discovered |

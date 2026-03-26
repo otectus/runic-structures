@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.1.1] - 2026-03-26
+
+### Bug Fixes
+- Fixed double armor and fire resistance application on periodic spawns — mobs spawned by the periodic/initial spawner were getting armor applied twice (once by the spawner, once by the event handler). Periodic-spawned mobs are now tagged to skip the event handler.
+- Fixed elite mobs always persisting regardless of `persistentMobs` config — elites now respect the config like all other mobs
+- Fixed `/ds info` displaying "128 block range" when the actual search radius is 64 blocks
+- Fixed `/ds debug` toggle reverting silently on config reload — runtime debug flag now survives reloads (resets on server stop)
+
+### Performance
+- Optimized entity counting in periodic spawner — now uses `getEntitiesOfClass(Mob.class, ...)` instead of fetching all entities (items, XP orbs, arrows, etc.) and filtering
+- Switched `/ds list` deduplication from `ArrayList.contains()` (O(n)) to `LinkedHashSet` (O(1))
+- Increased `findNearbyFloor` retry count from 4 to 8, improving pack spawn success rate
+
+### Config Changes
+- **Breaking:** Renamed `sunlightImmunity` to `fireImmunity` — existing configs with `sunlightImmunity = false` will need to re-set `fireImmunity = false` (default `true` is unchanged)
+- Added config comment to `useVanillaSpawnWeights` noting it only applies when `dimensionSpecificMobs` is enabled
+- Added config comment to `minPlayerDistance` noting initial population ignores this setting
+- Added config comment to `initialPopulationEnabled` noting it ignores `minPlayerDistance`
+
+### New Features
+- Added `/ds validate` command — re-runs config validation and reports issues in chat (unknown IDs, contradictory options, cross-option dependency warnings)
+- Config validation now warns when `useVanillaSpawnWeights` is enabled but `dimensionSpecificMobs` is disabled
+- Added debug logging for periodic spawn position failures (previously only incremented a stat counter silently)
+
+### Code Quality
+- Decomposed `TickSpawnHandler` (819 lines) into focused helper classes: `SpawnPositionFinder`, `MobSelector`, `MobEnhancer` (now 595 lines + 304 lines in helpers)
+- Extracted 6 hardcoded magic numbers to named constants
+- Simplified ambient sound timing logic from `tickCount % interval < 20` to `tickCount % interval == 0`
+- Made `populatedStructures` set thread-safe (`ConcurrentHashMap.newKeySet()`)
+- Added thread-safety documentation for spawn stat variables
+- Made `DangerousStructuresAPI.getRegisteredStructuresInternal()` return an unmodifiable set
+- Added unit tests for `SpawnPositionFinder.selectDistributedPositions()` (JUnit 5)
+
 ## [1.1.0] - 2026-03-25
 
 ### Bug Fixes

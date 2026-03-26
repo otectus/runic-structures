@@ -17,6 +17,9 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = DangerousStructures.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class PlayerEffectHandler {
 
+    private static final int PLAYER_CHECK_THROTTLE_TICKS = 20;
+    private static final int DARKNESS_EFFECT_DURATION_TICKS = 40;
+
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent evt) {
         if (evt.phase != TickEvent.Phase.END) return;
@@ -28,7 +31,7 @@ public class PlayerEffectHandler {
         if (!darknessEnabled && !soundsEnabled) return;
 
         // Throttle structure checks to every 20 ticks (1 second) per player
-        if (player.tickCount % 20 != 0) return;
+        if (player.tickCount % PLAYER_CHECK_THROTTLE_TICKS != 0) return;
 
         ServerLevel level = player.serverLevel();
         BlockPos pos = player.blockPosition();
@@ -37,10 +40,10 @@ public class PlayerEffectHandler {
 
         // Apply darkness effect
         if (darknessEnabled) {
-            // Short duration (40 ticks = 2 seconds), refreshed every second
+            // Short duration (2 seconds), refreshed every second
             player.addEffect(new MobEffectInstance(
                     MobEffects.DARKNESS,
-                    40, // duration in ticks
+                    DARKNESS_EFFECT_DURATION_TICKS,
                     DSConfig.darknessAmplifier.get(),
                     true,   // ambient (no particles icon flash)
                     false,  // no particles
@@ -51,7 +54,7 @@ public class PlayerEffectHandler {
         // Play ambient sounds — use player.tickCount for per-player timing
         if (soundsEnabled) {
             int interval = DSConfig.ambientSoundInterval.get();
-            if (player.tickCount % interval < 20) {
+            if (player.tickCount % interval == 0) {
                 level.playSound(null, pos, SoundEvents.AMBIENT_CAVE.value(),
                         SoundSource.AMBIENT, 0.7F, 0.8F + level.getRandom().nextFloat() * 0.4F);
             }
