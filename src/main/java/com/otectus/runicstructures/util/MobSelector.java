@@ -1,11 +1,12 @@
-package com.otectus.dangerousstructures.util;
+package com.otectus.runicstructures.util;
 
-import com.otectus.dangerousstructures.config.DSConfig;
+import com.otectus.runicstructures.config.RSConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -36,13 +37,13 @@ public class MobSelector {
 
         List<MobSpawnSettings.SpawnerData> eligible = new ArrayList<>();
         for (MobSpawnSettings.SpawnerData data : spawners) {
-            if (DSConfig.isEntityAllowed(data.type)) {
+            if (RSConfig.isEntityAllowed(data.type)) {
                 eligible.add(data);
             }
         }
         if (eligible.isEmpty()) return null;
 
-        if (DSConfig.useVanillaSpawnWeights.get()) {
+        if (RSConfig.useVanillaSpawnWeights.get()) {
             // Weighted random selection
             int totalWeight = 0;
             for (MobSpawnSettings.SpawnerData data : eligible) {
@@ -71,8 +72,8 @@ public class MobSelector {
         List<EntityType<?>> cached = cachedSpawnableMobs;
         if (cached != null) return cached;
 
-        Set<ResourceLocation> whitelist = DSConfig.getMobWhitelist();
-        Set<ResourceLocation> blacklist = DSConfig.getMobBlacklist();
+        Set<ResourceLocation> whitelist = RSConfig.getMobWhitelist();
+        Set<ResourceLocation> blacklist = RSConfig.getMobBlacklist();
 
         List<EntityType<?>> result;
         if (!whitelist.isEmpty()) {
@@ -86,6 +87,8 @@ public class MobSelector {
             List<EntityType<?>> list = new ArrayList<>();
             for (EntityType<?> et : ForgeRegistries.ENTITY_TYPES.getValues()) {
                 if (et.getCategory() != MobCategory.MONSTER) continue;
+                if (!Mob.class.isAssignableFrom(et.getBaseClass())) continue;
+                if (!et.canSummon()) continue;
                 if (!blacklist.isEmpty() && blacklist.contains(EntityType.getKey(et))) continue;
                 list.add(et);
             }

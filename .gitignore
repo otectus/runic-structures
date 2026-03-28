@@ -26,3 +26,6 @@ Thumbs.db
 
 # Internal docs
 PLAN.md
+PROFILES_*.md
+RUNIC_STRUCTURES_AUDIT.md
+P1_7_CONFIG_SANITIZATION.md

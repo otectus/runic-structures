@@ -1,97 +1,75 @@
 # Changelog
 
-## [1.1.1] - 2026-03-26
+## [0.9.0] - 2026-03-28
 
-### Bug Fixes
-- Fixed double armor and fire resistance application on periodic spawns — mobs spawned by the periodic/initial spawner were getting armor applied twice (once by the spawner, once by the event handler). Periodic-spawned mobs are now tagged to skip the event handler.
-- Fixed elite mobs always persisting regardless of `persistentMobs` config — elites now respect the config like all other mobs
-- Fixed `/ds info` displaying "128 block range" when the actual search radius is 64 blocks
-- Fixed `/ds debug` toggle reverting silently on config reload — runtime debug flag now survives reloads (resets on server stop)
+### Initial Public Release
 
-### Performance
-- Optimized entity counting in periodic spawner — now uses `getEntitiesOfClass(Mob.class, ...)` instead of fetching all entities (items, XP orbs, arrows, etc.) and filtering
-- Switched `/ds list` deduplication from `ArrayList.contains()` (O(n)) to `LinkedHashSet` (O(1))
-- Increased `findNearbyFloor` retry count from 4 to 8, improving pack spawn success rate
+Runic Structures is a Minecraft Forge mod (1.20.1) that transforms every generated structure into permanently hostile territory. Built for the Runecraft modpack.
 
-### Config Changes
-- **Breaking:** Renamed `sunlightImmunity` to `fireImmunity` — existing configs with `sunlightImmunity = false` will need to re-set `fireImmunity = false` (default `true` is unchanged)
-- Added config comment to `useVanillaSpawnWeights` noting it only applies when `dimensionSpecificMobs` is enabled
-- Added config comment to `minPlayerDistance` noting initial population ignores this setting
-- Added config comment to `initialPopulationEnabled` noting it ignores `minPlayerDistance`
+### Spawning System
+- Automatic structure detection for all registered structures (vanilla + modded) with village exclusion
+- Initial population: 2-5 mobs spawn throughout a structure on first discovery each session
+- Periodic reinforcement spawning at configurable intervals to maintain mob presence
+- Structure piece-aware targeting: mobs spawn inside rooms and corridors, not random bounding box points
+- Column-based floor finding with multi-floor distribution across structure levels
+- Pack spawning with vanilla biome spawn weights for natural-feeling encounters
+- Hazard avoidance: skips lava, water, and rooftop positions
+- Difficulty scaling: spawn cap and interval scale with Easy/Normal/Hard
+- Night spawn boost, min player distance, and spawn interval jitter
+- Dimension filtering with support for modded dimensions (Mining Dimension, Dungeon Realm)
 
-### New Features
-- Added `/ds validate` command — re-runs config validation and reports issues in chat (unknown IDs, contradictory options, cross-option dependency warnings)
-- Config validation now warns when `useVanillaSpawnWeights` is enabled but `dimensionSpecificMobs` is disabled
-- Added debug logging for periodic spawn position failures (previously only incremented a stat counter silently)
+### Per-Structure Profiles
+- **238 individualized structure profiles** across 27 mods for the Runecraft modpack
+- Per-structure JSON overrides (`runicstructures-structures.json`) for spawn cap, elite chance, elite name prefix, armor tiers, weapon pool, shield pool, enchantment level, environmental effects (darkness, mining fatigue, slowness, ambient sounds), mob persistence, and progression gating
+- Calibrated sizing from 1-mob tiny ruins to 16-mob colossal fortresses based on actual structure footprints
+- 16 thematic elite name prefixes: Ancient, Arcane, Commander, Corrupted, Cursed, Deep, Dragonsworn, Dread, Fallen, Feral, Hexed, Illager, Lord, Sculk-Infested, Warchief, Wither
+- Progression gating by server day count (early/mid/late/veteran tiers)
+- Mods covered: Vanilla, YUNG's Better Series, When Dungeons Arise (+Seven Seas), Dungeons and Taverns, Hopo Better Mineshaft, Moog's Mods (Missing Villages, Nether Structures, Temples Reimagined), Underground Rooms, Medieval Buildings (Overworld + Nether), Medieval End, Battle Towers, Jaden's Nether Expansion, Ice and Fire, Iron's Spellbooks, Ars Nouveau, Galosphere, Mowzie's Mobs, Goblin's Tyranny, The Orcs, and more
 
-### Code Quality
-- Decomposed `TickSpawnHandler` (819 lines) into focused helper classes: `SpawnPositionFinder`, `MobSelector`, `MobEnhancer` (now 595 lines + 304 lines in helpers)
-- Extracted 6 hardcoded magic numbers to named constants
-- Simplified ambient sound timing logic from `tickCount % interval < 20` to `tickCount % interval == 0`
-- Made `populatedStructures` set thread-safe (`ConcurrentHashMap.newKeySet()`)
-- Added thread-safety documentation for spawn stat variables
-- Made `DangerousStructuresAPI.getRegisteredStructuresInternal()` return an unmodifiable set
-- Added unit tests for `SpawnPositionFinder.selectDistributedPositions()` (JUnit 5)
+### Mob Enhancement
+- Randomized armor from configurable tier pool (leather through netherite) with per-tier drop chance multipliers
+- Config-driven weapon pool supporting any modded weapon (Spartan Weaponry, Cataclysm Tools, etc.)
+- Custom armor set definitions for modded armor (`name=helmet,chest,legs,boots` format)
+- Shield/offhand support (opt-in) with configurable chance and item pool
+- Equipment enchantments (opt-in): Protection/Blast/Projectile/Thorns on armor, Sharpness/Knockback/Fire Aspect on weapons
+- Permanent Fire Resistance prevents sunlight burning and lava/fire cheese
+- Anti-stacking guards: respects existing armor/weapons from InControl and Majrusz's Difficulty
 
-## [1.1.0] - 2026-03-25
+### Elite Mobs (opt-in)
+- Configurable spawn chance with boosted health and damage multipliers
+- Glowing effect (visible through walls), custom name prefix, and bonus XP on kill
+- Per-structure elite chance, name prefix, and stat overrides via JSON profiles
+- Health threshold (`maxBaseHealth`) skips elite buffs on mobs already buffed by other systems
 
-### Bug Fixes
-- Fixed hostile mobs spawning on Peaceful difficulty — both event-based and periodic spawning now correctly skip Peaceful
-- Fixed mobs spawning on structure rooftops instead of inside — added sky exposure filter (`canSeeSky`) to exclude open-air positions
-- Fixed armor and Fire Resistance not applying to periodic spawns — enhancements are now applied directly by the spawner rather than relying solely on event handler detection
-- Fixed `minPlayerDistance` default of 16 blocks making interior spawns impossible in small structures — reduced to 6 blocks
-- Fixed chunk force-loading in periodic spawner — no longer loads unloaded chunks when scanning for structures
-- Fixed potential spawn duplication when other mods cancel `FinalizeSpawn` events — canceled spawns are now properly discarded
-- Fixed structure caches not invalidating on `/reload` — datapack reloads now correctly clear all caches
-- Fixed license mismatch between gradle.properties and mods.toml
+### Environmental Effects (opt-in, per-structure or global)
+- Darkness: pulsing Warden-style vision effect inside structures
+- Mining Fatigue: slows block-breaking to discourage cheese strategies
+- Slowness: subtle movement penalty that increases danger
+- Ambient sounds: weighted pool of ominous cave/nether ambience at configurable intervals
 
-### Spawning Improvements
-- **Structure piece-aware spawning** — Mobs now spawn within individual structure pieces (rooms, corridors) instead of the full bounding box, dramatically improving spawn accuracy for large structures like Nether fortresses and strongholds
-- **Column-based floor finding** — Replaced random Y coordinate picking with downward column scanning, greatly increasing the chance of finding valid spawn positions
-- **Pack spawning** — Mobs now spawn in groups of 1-4 matching vanilla biome pack sizes, creating more natural encounters
-- **Vanilla spawn weights** — Biome mob selection now respects vanilla spawn weight probabilities instead of uniform random
-- **Hazard avoidance** — Spawn positions in or above lava and in water are automatically skipped
-- **Minimum player distance** — Mobs won't spawn within 6 blocks of any player (configurable), preventing frustrating instant-spawn deaths
-- **Spawn interval jitter** — Randomized +/-25% timing prevents synchronized spawn waves across structures
-- **Multi-floor distribution** — Valid floors are collected per column and selected randomly, spreading spawns across multiple levels in multi-story structures
-- **Early-exit entity counting** — Monster cap checks now exit as soon as the cap is reached instead of counting every entity
-- **Fast-reject gate** — Structure detection now uses `hasAnyStructureAt()` as a cheap pre-check before per-structure iteration
-
-### New Features
-- **Initial population** — 3-6 mobs spawn throughout a structure the first time it's discovered each session, guaranteeing structures are populated on arrival (configurable min/max count)
-- **Armor system** — Mod-spawned mobs are equipped with randomized armor from a configurable tier pool (leather through netherite) with configurable drop chance
-- **Sunlight immunity** — Mod-spawned mobs receive permanent Fire Resistance, preventing undead from burning outside structures
-- **Admin commands** — `/ds status`, `/ds info`, `/ds list`, `/ds reload`, `/ds debug [on/off]`, `/ds spawns` (requires OP level 2)
-- **Difficulty scaling** — Spawn cap and interval automatically scale with game difficulty (configurable multipliers for Easy/Normal/Hard)
-- **Elite mob spawns** — Rare enhanced mobs with boosted health, damage, glowing effect, custom name, and bonus XP on kill (opt-in, disabled by default)
-- **Environmental effects** — Darkness effect and ambient cave sounds for players inside dangerous structures (opt-in, disabled by default)
-- **Mob persistence** — Optional flag to prevent periodic-spawned mobs from despawning when players leave
-- **Night spawn boost** — Configurable spawn rate multiplier that increases frequency at night
-- **Structure size-based cap scaling** — Opt-in larger mob caps for larger structures based on footprint area
-- **Spawn statistics** — Track spawn attempts, successes, cap rejections, and position failures via `/ds spawns`
-- **Config validation** — Unknown structure IDs, mob IDs, and contradictory config options now produce warnings on server start
-
-### API
-- **Public mod API** — `DangerousStructuresAPI` class for other mods to register/unregister dangerous structures and query positions
+### Admin Commands
+- `/rs status` -- mod status and config summary
+- `/rs info` -- check if standing inside a runic structure
+- `/rs list` -- nearby structures with runic/excluded status and coordinates
+- `/rs spawns` / `/rs spawns detail` -- spawn statistics, per-structure breakdown
+- `/rs reload` -- reload structure profiles and invalidate caches
+- `/rs validate` -- re-run config validation and report issues
+- `/rs debug on|off` -- toggle per-spawn debug logging (survives config reloads)
 
 ### Configuration
-- Added 25+ new config options across 4 new sections: Periodic Spawning (expanded), Difficulty Scaling, Environmental Effects, and Elite Spawns
-- Configurable chunk search radius (was hardcoded to 4)
-- Configurable max position attempts (was hardcoded to 5, now defaults to 10)
-- Shared structure cache between StructureDetection and TickSpawnHandler
+- 60+ server config options across 10 sections in `runicstructures-server.toml`
+- Structure whitelist/blacklist by ID or tag, mob whitelist/blacklist
+- 45+ boss mobs blacklisted by default (Cataclysm, BOMD, Mowzie's, Ice & Fire, Stalwart Dungeons, Saints Dragons, Iron's Spellbooks, Ars Nouveau, RealmRPG, Galosphere, Dark Doppelganger, Majrusz's Difficulty)
+- Boss arena structures blacklisted (Cataclysm, Stalwart Dungeons, BOMD) to preserve scripted encounters
+- Difficulty scaling tuned conservatively to complement InControl and Majrusz's Difficulty
+- Structure size-based cap scaling for proportional mob density
 
-### Internal
-- Centralized dangerous structure cache in `StructureDetection.getDangerousStructures()`
-- Improved code organization with new `command`, `api`, and effect handler packages
+### API
+- `RunicStructuresAPI.registerRunicStructure()` / `unregisterRunicStructure()` for other mods
+- `RunicStructuresAPI.isPositionRunic()` for querying structure status at any position
 
-## [1.0.0] - 2025-12-01
-
-### Initial Release
-- Automatic structure detection with village exclusion toggle
-- Structure whitelist/blacklist by ID and tag
-- Mob whitelist/blacklist with biome-specific option
-- Periodic spawning for daytime surface spawns
-- Dimension filtering
-- Buffer radius for structure detection
-- Server-side only — no client mod required
-- Hot-reloadable server config
+### Compatibility
+- Built for Runecraft modpack (Forge 1.20.1, 427 mods)
+- Complementary with InControl (biome/weather/phase spawning) and Majrusz's Difficulty (scaling)
+- Server-side only -- no client mod required
+- Localized command output with translation keys (`en_us.json`)

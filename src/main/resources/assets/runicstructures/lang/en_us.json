@@ -1,0 +1,45 @@
+{
+  "command.runicstructures.status.header": "=== Runic Structures Status ===",
+  "command.runicstructures.status.enabled": "Enabled: %s",
+  "command.runicstructures.status.mode": "Mode: %s",
+  "command.runicstructures.status.mode.auto": "Auto-detect",
+  "command.runicstructures.status.mode.manual": "Manual whitelist",
+  "command.runicstructures.status.villages": "Villages included: %s",
+  "command.runicstructures.status.periodic": "Periodic spawning: %s",
+  "command.runicstructures.status.interval": "Spawn interval: %s ticks",
+  "command.runicstructures.status.cap": "Base spawn cap: %s",
+  "command.runicstructures.status.difficulty": "Difficulty scaling: %s",
+  "command.runicstructures.status.initial_pop": "Initial population: %s (%s-%s mobs)",
+  "command.runicstructures.status.debug": "Debug logging: %s",
+  "command.runicstructures.status.dimensions": "Dimensions: %s",
+
+  "command.runicstructures.info.player_only": "This command must be run by a player",
+  "command.runicstructures.info.inside": "You ARE inside a runic structure!",
+  "command.runicstructures.info.outside": "You are NOT inside a runic structure.",
+  "command.runicstructures.info.structures_at": "Structures at position: %s",
+  "command.runicstructures.info.nearby_monsters": "Nearby monsters (%s block radius): %s",
+
+  "command.runicstructures.list.header": "=== Nearby Structures ===",
+  "command.runicstructures.list.none": "No structures found nearby.",
+
+  "command.runicstructures.reload.success": "Structure profiles reloaded and runtime caches invalidated.",
+
+  "command.runicstructures.debug.toggled": "Debug logging %s (runtime only, survives config reload)",
+  "command.runicstructures.debug.enabled": "enabled",
+  "command.runicstructures.debug.disabled": "disabled",
+
+  "command.runicstructures.validate.passed": "Config validation passed — no issues found.",
+  "command.runicstructures.validate.issues": "Config validation found %s issue(s):",
+
+  "command.runicstructures.spawns.header": "=== Spawn Statistics ===",
+  "command.runicstructures.spawns.attempts": "Total spawn attempts: %s",
+  "command.runicstructures.spawns.successful": "Successful spawns: %s",
+  "command.runicstructures.spawns.cap_rejections": "Cap rejections: %s",
+  "command.runicstructures.spawns.position_failures": "Position failures: %s",
+  "command.runicstructures.spawns.initial_populations": "Initial populations: %s",
+  "command.runicstructures.spawns.detail_header": "=== Per-Structure Spawn Statistics (Top 10) ===",
+  "command.runicstructures.spawns.detail_none": "No per-structure data yet.",
+  "command.runicstructures.spawns.detail_entry": "  [%s | %s, %s, %s] spawns: %s, attempts: %s, cap rejects: %s",
+
+  "entity.runicstructures.elite_prefix": "%s %s"
+}

@@ -1,4 +1,4 @@
-package com.otectus.dangerousstructures.util;
+package com.otectus.runicstructures.util;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -7,7 +7,6 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,17 +32,25 @@ public class SpawnPositionFinder {
             // Check the Y level and one above/below
             for (int dy = -1; dy <= 1; dy++) {
                 BlockPos pos = candidate.offset(0, dy, 0);
-                BlockPos below = pos.below();
-                if (level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)
-                        && level.getBlockState(pos).isAir()
-                        && level.getBlockState(pos.above()).isAir()
-                        && !level.getFluidState(below).is(FluidTags.LAVA)
-                        && !level.getFluidState(pos).is(FluidTags.WATER)) {
+                if (isValidSpawnFloor(level, pos)) {
                     return pos;
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * Shared floor validation used by periodic, initial, and pack placement.
+     */
+    public static boolean isValidSpawnFloor(ServerLevel level, BlockPos pos) {
+        BlockPos below = pos.below();
+        if (!level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)) return false;
+        if (!level.getBlockState(pos).isAir()) return false;
+        if (!level.getBlockState(pos.above()).isAir()) return false;
+        if (level.getFluidState(below).is(FluidTags.LAVA)) return false;
+        if (level.getFluidState(pos).is(FluidTags.WATER)) return false;
+        return !level.canSeeSky(pos);
     }
 
     /**
@@ -67,7 +74,7 @@ public class SpawnPositionFinder {
 
         List<BlockPos> selected = new ArrayList<>();
         List<Integer> pieceKeys = new ArrayList<>(byPiece.keySet());
-        Collections.shuffle(pieceKeys, new java.util.Random(random.nextLong()));
+        shuffle(pieceKeys, random);
 
         int piecePtr = 0;
         while (selected.size() < targetCount && !pieceKeys.isEmpty()) {
@@ -106,5 +113,14 @@ public class SpawnPositionFinder {
         }
 
         return selected;
+    }
+
+    private static <T> void shuffle(List<T> list, RandomSource random) {
+        for (int i = list.size() - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            T tmp = list.get(i);
+            list.set(i, list.get(j));
+            list.set(j, tmp);
+        }
     }
 }

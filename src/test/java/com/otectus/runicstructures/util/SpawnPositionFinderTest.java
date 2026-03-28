@@ -1,4 +1,4 @@
-package com.otectus.dangerousstructures.util;
+package com.otectus.runicstructures.util;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;

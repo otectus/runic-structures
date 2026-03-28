@@ -46,19 +46,6 @@ minecraft {
             }
         }
 
-        data {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.console.level', 'info'
-
-            args '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                "${project.mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
     }
 }
 
@@ -67,8 +54,6 @@ processResources {
         expand 'mod_version': project.mod_version
     }
 }
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
