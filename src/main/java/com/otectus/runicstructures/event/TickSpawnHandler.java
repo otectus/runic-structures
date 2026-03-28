@@ -369,7 +369,9 @@ public class TickSpawnHandler {
 
             MobSpawnSettings.SpawnerData selectedSpawnerData = null;
             EntityType<?> mobType;
-            if (RSConfig.dimensionSpecificMobs.get()) {
+            if (profile.hasMobPoolOverride()) {
+                mobType = MobSelector.pickFromMobPool(profile.getMobPool(), random);
+            } else if (RSConfig.dimensionSpecificMobs.get()) {
                 selectedSpawnerData = MobSelector.pickBiomeSpecificSpawnerData(level, spawnPos, random);
                 mobType = selectedSpawnerData != null ? selectedSpawnerData.type : null;
             } else {
@@ -508,7 +510,9 @@ public class TickSpawnHandler {
         int spawned = 0;
         for (BlockPos spawnPos : selectedPositions) {
             EntityType<?> mobType;
-            if (RSConfig.dimensionSpecificMobs.get()) {
+            if (profile.hasMobPoolOverride()) {
+                mobType = MobSelector.pickFromMobPool(profile.getMobPool(), random);
+            } else if (RSConfig.dimensionSpecificMobs.get()) {
                 MobSpawnSettings.SpawnerData data = MobSelector.pickBiomeSpecificSpawnerData(level, spawnPos, random);
                 mobType = data != null ? data.type : null;
             } else {

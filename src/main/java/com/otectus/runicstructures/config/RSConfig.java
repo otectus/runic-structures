@@ -54,8 +54,6 @@ public class RSConfig {
     public static IntValue maxScaledCap;
 
     // Environmental effects
-    public static BooleanValue applyDarknessEffect;
-    public static IntValue darknessAmplifier;
     public static BooleanValue playAmbientSounds;
     public static IntValue ambientSoundInterval;
 
@@ -565,7 +563,45 @@ public class RSConfig {
                         "The name can then be used in per-structure JSON profiles",
                         "Example: [\"fantasy_dragonslayer=fantasy_armor:dragonslayer_helmet,fantasy_armor:dragonslayer_chestplate,fantasy_armor:dragonslayer_leggings,fantasy_armor:dragonslayer_boots\"]")
                 .defineListAllowEmpty(List.of("customArmorSets"),
-                        Collections::emptyList,
+                        () -> List.of(
+                                // Knight / fortress armor (mid-late tier)
+                                "knight_silver=fantasy_armor:silver_knight_helmet,fantasy_armor:silver_knight_chestplate,fantasy_armor:silver_knight_leggings,fantasy_armor:silver_knight_boots",
+                                "knight_dark=fantasy_armor:dark_lord_helmet,fantasy_armor:dark_lord_chestplate,fantasy_armor:dark_lord_leggings,fantasy_armor:dark_lord_boots",
+                                "knight_crucible=fantasy_armor:crucible_knight_helmet,fantasy_armor:crucible_knight_chestplate,fantasy_armor:crucible_knight_leggings,fantasy_armor:crucible_knight_boots",
+                                "knight_old=fantasy_armor:old_knight_helmet,fantasy_armor:old_knight_chestplate,fantasy_armor:old_knight_leggings,fantasy_armor:old_knight_boots",
+                                // Bandit / raider armor (early-mid tier)
+                                "bandit=jet_and_elias_armors:bandit_armor_helmet,jet_and_elias_armors:bandit_armor_chestplate,jet_and_elias_armors:bandit_armor_leggings,jet_and_elias_armors:bandit_armor_boots",
+                                "raider=jet_and_elias_armors:raider_armor_helmet,jet_and_elias_armors:raider_armor_chestplate,jet_and_elias_armors:raider_armor_leggings,jet_and_elias_armors:raider_armor_boots",
+                                "mercenary=jet_and_elias_armors:mercenary_gear_helmet,jet_and_elias_armors:mercenary_gear_chestplate,jet_and_elias_armors:mercenary_gear_leggings,jet_and_elias_armors:mercenary_gear_boots",
+                                // Heavy knight armor (late-veteran tier)
+                                "crusader=jet_and_elias_armors:crusader_armor_helmet,jet_and_elias_armors:crusader_armor_chestplate,jet_and_elias_armors:crusader_armor_leggings,jet_and_elias_armors:crusader_armor_boots",
+                                "death_knight=jet_and_elias_armors:death_knight_armor_helmet,jet_and_elias_armors:death_knight_armor_chestplate,jet_and_elias_armors:death_knight_armor_leggings,jet_and_elias_armors:death_knight_armor_boots",
+                                "dreadnought=jet_and_elias_armors:dreadnought_armor_helmet,jet_and_elias_armors:dreadnought_armor_chestplate,jet_and_elias_armors:dreadnought_armor_leggings,jet_and_elias_armors:dreadnought_armor_boots",
+                                // Dragonslayer (veteran tier)
+                                "dragonslayer=fantasy_armor:dragonslayer_helmet,fantasy_armor:dragonslayer_chestplate,fantasy_armor:dragonslayer_leggings,fantasy_armor:dragonslayer_boots",
+                                // Undead / crypt armor (mid tier)
+                                "dead_gladiator=fantasy_armor:dead_gladiator_helmet,fantasy_armor:dead_gladiator_chestplate,fantasy_armor:dead_gladiator_leggings,fantasy_armor:dead_gladiator_boots",
+                                "grave_sentinel=fantasy_armor:grave_sentinel_helmet,fantasy_armor:grave_sentinel_chestplate,fantasy_armor:grave_sentinel_leggings,fantasy_armor:grave_sentinel_boots",
+                                // Mage robes (magic structures)
+                                "mage_cultist=irons_spellbooks:cultist_helmet,irons_spellbooks:cultist_chestplate,irons_spellbooks:cultist_leggings,irons_spellbooks:cultist_boots",
+                                "mage_pyromancer=irons_spellbooks:pyromancer_helmet,irons_spellbooks:pyromancer_chestplate,irons_spellbooks:pyromancer_leggings,irons_spellbooks:pyromancer_boots",
+                                "mage_cryomancer=irons_spellbooks:cryomancer_helmet,irons_spellbooks:cryomancer_chestplate,irons_spellbooks:cryomancer_leggings,irons_spellbooks:cryomancer_boots",
+                                "mage_plagued=irons_spellbooks:plagued_helmet,irons_spellbooks:plagued_chestplate,irons_spellbooks:plagued_leggings,irons_spellbooks:plagued_boots",
+                                "mage_archevoker=irons_spellbooks:archevoker_helmet,irons_spellbooks:archevoker_chestplate,irons_spellbooks:archevoker_leggings,irons_spellbooks:archevoker_boots",
+                                "mage_necromancer=irons_spellbooks:shadowwalker_helmet,irons_spellbooks:shadowwalker_chestplate,irons_spellbooks:shadowwalker_leggings,irons_spellbooks:shadowwalker_boots",
+                                // Nether armor (nether structures)
+                                "nether_tungsten=stalwart_dungeons:tungsten_helmet,stalwart_dungeons:tungsten_chestplate,stalwart_dungeons:tungsten_leggings,stalwart_dungeons:tungsten_boots",
+                                "nether_warted=stalwart_dungeons:warted_tungsten_helmet,stalwart_dungeons:warted_tungsten_chestplate,stalwart_dungeons:warted_tungsten_leggings,stalwart_dungeons:warted_tungsten_boots",
+                                "nether_cursium=cataclysm:cursium_helmet,cataclysm:cursium_chestplate,cataclysm:cursium_leggings,cataclysm:cursium_boots",
+                                // Samurai / Japanese themed
+                                "samurai_iron=samurai_dynasty:iron_samurai_helmet,samurai_dynasty:iron_samurai_chestplate,samurai_dynasty:iron_samurai_leggings,samurai_dynasty:iron_samurai_boots",
+                                "samurai_red=samurai_dynasty:red_samurai_helmet,samurai_dynasty:red_samurai_chestplate,samurai_dynasty:red_samurai_leggings,samurai_dynasty:red_samurai_boots",
+                                // Thief / rogue (light early-tier)
+                                "thief=fantasy_armor:thief_helmet,fantasy_armor:thief_chestplate,fantasy_armor:thief_leggings,fantasy_armor:thief_boots",
+                                "ronin=fantasy_armor:ronin_helmet,fantasy_armor:ronin_chestplate,fantasy_armor:ronin_leggings,fantasy_armor:ronin_boots",
+                                // Tattered / cursed (undead early-mid)
+                                "tattered=majruszsdifficulty:tattered_helmet,majruszsdifficulty:tattered_chestplate,majruszsdifficulty:tattered_leggings,majruszsdifficulty:tattered_boots"
+                        ),
                         o -> o instanceof String);
 
         shieldsEnabled = builder
@@ -597,14 +633,6 @@ public class RSConfig {
     private static void buildEnvironmentalConfig(ForgeConfigSpec.Builder builder) {
         builder.comment("Environmental Effects",
                 "Atmospheric effects applied to players inside runic structures").push("environmentalEffects");
-
-        applyDarknessEffect = builder
-                .comment("Apply the Darkness effect (like the Warden) to players inside runic structures")
-                .define("applyDarknessEffect", false);
-
-        darknessAmplifier = builder
-                .comment("Amplifier level for the Darkness effect (0 = level I, 1 = level II, etc.)")
-                .defineInRange("darknessAmplifier", 0, 0, 4);
 
         applyMiningFatigue = builder
                 .comment("Apply Mining Fatigue to players inside runic structures",

@@ -1,5 +1,6 @@
 package com.otectus.runicstructures.config;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
 import javax.annotation.Nullable;
@@ -55,8 +56,9 @@ public final class StructureProfile {
             List.of(), List.of(),
             null, List.of(),
             null,
-            null, null, null, null,
-            null
+            null, null, null,
+            null,
+            List.of()
     );
 
     @Nullable private final Integer spawnCap;
@@ -72,12 +74,13 @@ public final class StructureProfile {
 
     @Nullable private final Integer enchantmentLevel;
 
-    @Nullable private final Boolean darkness;
     @Nullable private final Boolean miningFatigue;
     @Nullable private final Boolean slowness;
     @Nullable private final Boolean ambientSounds;
 
     @Nullable private final ProgressionTier progressionTier;
+
+    private final List<ResourceLocation> mobPool;
 
     public StructureProfile(
             @Nullable Integer spawnCap,
@@ -89,11 +92,11 @@ public final class StructureProfile {
             @Nullable Double shieldChance,
             @Nullable List<Item> shieldPool,
             @Nullable Integer enchantmentLevel,
-            @Nullable Boolean darkness,
             @Nullable Boolean miningFatigue,
             @Nullable Boolean slowness,
             @Nullable Boolean ambientSounds,
-            @Nullable ProgressionTier progressionTier
+            @Nullable ProgressionTier progressionTier,
+            @Nullable List<ResourceLocation> mobPool
     ) {
         this.spawnCap = spawnCap;
         this.eliteChance = eliteChance;
@@ -104,11 +107,11 @@ public final class StructureProfile {
         this.shieldChance = shieldChance;
         this.shieldPool = shieldPool == null ? List.of() : List.copyOf(shieldPool);
         this.enchantmentLevel = enchantmentLevel;
-        this.darkness = darkness;
         this.miningFatigue = miningFatigue;
         this.slowness = slowness;
         this.ambientSounds = ambientSounds;
         this.progressionTier = progressionTier;
+        this.mobPool = mobPool == null ? List.of() : List.copyOf(mobPool);
     }
 
     public int getSpawnCap() {
@@ -129,10 +132,6 @@ public final class StructureProfile {
 
     public int getEnchantmentLevel() {
         return enchantmentLevel != null ? enchantmentLevel : RSConfig.maxEnchantmentLevel.get();
-    }
-
-    public boolean isDarknessEnabled() {
-        return darkness != null ? darkness : RSConfig.applyDarknessEffect.get();
     }
 
     public boolean isMiningFatigueEnabled() {
@@ -178,6 +177,14 @@ public final class StructureProfile {
     @Nullable
     public ProgressionTier getProgressionTier() {
         return progressionTier;
+    }
+
+    public boolean hasMobPoolOverride() {
+        return !mobPool.isEmpty();
+    }
+
+    public List<ResourceLocation> getMobPool() {
+        return mobPool;
     }
 
     /**

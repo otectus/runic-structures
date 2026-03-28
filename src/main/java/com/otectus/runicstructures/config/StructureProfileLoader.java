@@ -47,11 +47,11 @@ public class StructureProfileLoader {
         @Nullable Double shieldChance;
         @Nullable List<String> shieldPool;
         @Nullable Integer enchantmentLevel;
-        @Nullable Boolean darkness;
         @Nullable Boolean miningFatigue;
         @Nullable Boolean slowness;
         @Nullable Boolean ambientSounds;
         @Nullable String progressionTier;
+        @Nullable List<String> mobPool;
     }
 
     /**
@@ -201,6 +201,20 @@ public class StructureProfileLoader {
             }
         }
 
+        List<ResourceLocation> mobPool = List.of();
+        if (raw.mobPool != null && !raw.mobPool.isEmpty()) {
+            List<ResourceLocation> parsed = new ArrayList<>();
+            for (String mob : raw.mobPool) {
+                ResourceLocation mobRl = ResourceLocation.tryParse(mob);
+                if (mobRl != null) {
+                    parsed.add(mobRl);
+                } else {
+                    warn(warnings, "Profile '" + structureId + "' has invalid mobPool entry '" + mob + "'");
+                }
+            }
+            mobPool = parsed;
+        }
+
         return new StructureProfile(
                 validateMin(raw.spawnCap, 1, structureId, "spawnCap", warnings),
                 validateFraction(raw.eliteChance, structureId, "eliteChance", warnings),
@@ -211,11 +225,11 @@ public class StructureProfileLoader {
                 validateFraction(raw.shieldChance, structureId, "shieldChance", warnings),
                 shieldPool,
                 validateRange(raw.enchantmentLevel, 0, 5, structureId, "enchantmentLevel", warnings),
-                raw.darkness,
                 raw.miningFatigue,
                 raw.slowness,
                 raw.ambientSounds,
-                progressionTier
+                progressionTier,
+                mobPool
         );
     }
 

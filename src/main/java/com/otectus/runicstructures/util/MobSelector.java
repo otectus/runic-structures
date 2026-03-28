@@ -62,6 +62,23 @@ public class MobSelector {
         }
     }
 
+    /**
+     * Pick a random mob from a per-structure mob pool, respecting the global blacklist.
+     */
+    public static EntityType<?> pickFromMobPool(List<ResourceLocation> mobPool, RandomSource random) {
+        Set<ResourceLocation> blacklist = RSConfig.getMobBlacklist();
+        List<EntityType<?>> eligible = new ArrayList<>();
+        for (ResourceLocation rl : mobPool) {
+            if (!blacklist.isEmpty() && blacklist.contains(rl)) continue;
+            EntityType<?> et = ForgeRegistries.ENTITY_TYPES.getValue(rl);
+            if (et != null && et.canSummon()) {
+                eligible.add(et);
+            }
+        }
+        if (eligible.isEmpty()) return null;
+        return eligible.get(random.nextInt(eligible.size()));
+    }
+
     public static EntityType<?> pickRandomHostileMob(RandomSource random) {
         List<EntityType<?>> mobs = getSpawnableMobs();
         if (mobs.isEmpty()) return null;
