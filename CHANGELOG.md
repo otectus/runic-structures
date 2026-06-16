@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0] - 2026-06-16
 
 ### Lycanites Mobs Integration
 - Structure-territory layer: element-matched Lycanites creatures are blended into per-structure mob pools, scaled by progression tier, across the nether, ocean, cave/mineshaft, crypt/stronghold, ancient-city, end, mage/arcane, and ruins archetypes. Coherent factions (Goblins of Tyranny, cultist towers, Barako village) are intentionally left unchanged.

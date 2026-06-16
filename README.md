@@ -33,6 +33,13 @@ Designed to complement InControl's overworld spawn rules and Majrusz's Difficult
 - **Progression gating** — Per-structure profiles can require a minimum game day (early/mid/late/veteran) before activating
 - **238 default profiles** across 27 mods (Vanilla, YUNG's, Dungeons Arise, Dungeons and Taverns, Hopo, Moog's, Underground Rooms, Medieval Buildings, Battle Towers, Ice and Fire, Iron's Spellbooks, Ars Nouveau, and more) with individualized settings
 
+### Lycanites Mobs Integration
+- **Ecological structure guardians** — Element-matched Lycanites creatures are blended into the default structure pools, scaled by progression tier, across eight archetypes: nether (Afrit, Belphegor, Cinder…), ocean (Jengu, Ioray, Abaia…), cave (Grue, Troll, Darkling…), crypt/stronghold (Ghoul, Reaper, Cryptkeeper…), ancient city (Shade, Fear, Spectre…), the End (Argus, Astaroth, Grell…), mage/arcane towers (Argus, Naxiris, Grell, Sutiramu), and surface ruins
+- **Element-aware guardians** — Lycanites mobs that roll elite gain an element-themed name (e.g. *Infernal Afrit*, *Frozen Reiver*, *Voidtouched Argus*) and an `rs_guardian` tag for downstream systems, with configurable bonus XP
+- **Faction restraint** — Coherent factions (Goblins of Tyranny, cultist towers, Barako village) are intentionally left untouched
+- **Soft dependency** — Missing Lycanites IDs resolve gracefully, so packs without Lycanites Mobs are unaffected
+- **Boss-safe** — Rahovart, Asmodeus, and Amalgalich are blacklisted from forced spawning
+
 ### Mob Enhancement
 - **Randomized armor** — Configurable tier pool (chainmail through diamond by default) with per-tier drop chance multipliers and custom modded armor set support
 - **Randomized weapons** — Config-driven weapon pool supporting any modded weapon (Spartan Weaponry, Cataclysm Tools, etc.)
@@ -71,14 +78,15 @@ Runic Structures is the authoritative system for structure-based mob spawning in
 - **InControl** — RS owns structure spawning; InControl handles biome, weather, phase, and underground spawning. The two systems are complementary. InControl's global mob enhancements (3% elites, stat boosts) still apply to RS-spawned mobs.
 - **Majrusz's Difficulty** — RS difficulty scaling is gentled (0.8x/1.2x cap, 1.1x/0.85x interval) to avoid stacking with Majrusz's Expert/Master tiers. The `eliteMaxBaseHealth` threshold prevents RS elite buffs from stacking on mobs already buffed by Majrusz's system.
 - **Apotheosis** — RS's optional enchantment system applies basic enchantments (Protection, Sharpness, Power). Apotheosis's adventure module can further enhance RS-spawned mobs naturally.
-- **Boss mods** — 45+ boss entities blacklisted by default (Cataclysm, BOMD, Mowzie's, Ice & Fire, Stalwart Dungeons, Saints Dragons, Iron's Spellbooks, Ars Nouveau, RealmRPG, Galosphere, Dark Doppelganger, Majrusz's Difficulty).
+- **Boss mods** — 48+ boss entities blacklisted by default (Cataclysm, BOMD, Mowzie's, Ice & Fire, Stalwart Dungeons, Saints Dragons, Iron's Spellbooks, Ars Nouveau, RealmRPG, Galosphere, Dark Doppelganger, Majrusz's Difficulty, Lycanites Mobs).
+- **Lycanites Mobs** — Element-matched creatures act as ecological structure guardians via the default profiles; element-themed elite guardians; soft dependency (no Lycanites = no effect).
 - **Structure mods** — Cataclysm arenas, Stalwart Dungeons boss arenas, and BOMD arenas are blacklisted to preserve their scripted encounters. All other structures (DungeonsArise, Yung's, Medieval Buildings, etc.) are runic by default.
 
 ## Requirements
 
 | | Version |
 |---|---|
-| Mod | 0.9.0 |
+| Mod | 1.0.0 |
 | Minecraft | 1.20.1 |
 | Forge | 47.2.0+ |
 | Java | 17+ |
@@ -201,7 +209,7 @@ Default structure blacklist: Cataclysm arenas (`burning_arena`, `cursed_pyramid`
 
 Per-structure overrides are defined in `serverconfig/runicstructures-structures.json`. Each structure ID maps to an override object. Any field omitted uses the global TOML config value.
 
-Available override fields: `spawnCap`, `eliteChance`, `eliteNamePrefix`, `persistentMobs`, `armorTiers`, `weaponPool`, `shieldChance`, `shieldPool`, `enchantmentLevel`, `darkness`, `miningFatigue`, `slowness`, `ambientSounds`, `progressionTier`.
+Available override fields: `spawnCap`, `eliteChance`, `eliteNamePrefix`, `persistentMobs`, `armorTiers`, `weaponPool`, `shieldChance`, `shieldPool`, `enchantmentLevel`, `darkness`, `miningFatigue`, `slowness`, `ambientSounds`, `progressionTier`, `mobPool`.
 
 ### Difficulty Scaling
 
@@ -219,7 +227,7 @@ Available override fields: `spawnCap`, `eliteChance`, `eliteNamePrefix`, `persis
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `applyDarknessEffect` | Boolean | `false` | Apply Darkness effect to players in structures |
+| `applyDarkness` | Boolean | `false` | Apply Darkness effect to players in structures |
 | `darknessAmplifier` | Integer (0-4) | `0` | Darkness effect amplifier level |
 | `applyMiningFatigue` | Boolean | `false` | Apply Mining Fatigue to players in structures |
 | `miningFatigueAmplifier` | Integer (0-4) | `0` | Mining Fatigue amplifier level |
@@ -240,6 +248,13 @@ Available override fields: `spawnCap`, `eliteChance`, `eliteNamePrefix`, `persis
 | `namePrefix` | String | `"Runic"` | Custom name prefix for elite mobs |
 | `bonusXP` | Integer (0-500) | `30` | Bonus XP when an elite is killed by a player |
 | `maxBaseHealth` | Double (0.0-1000.0) | `40.0` | Skip elite buffs if mob's base health exceeds this (0 = disabled) |
+
+### Lycanites Integration
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `eliteTheming` | Boolean | `true` | Give Lycanites elites element-themed names and an `rs_guardian` tag |
+| `guardianBonusXP` | Integer (0-500) | `50` | Extra XP dropped by Lycanites guardians, on top of elite bonus XP |
 
 ## API
 

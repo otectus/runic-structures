@@ -89,6 +89,20 @@ All 238 profiles ship as defaults. Delete the JSON file to regenerate with fresh
 
 ---
 
+## Lycanites Mobs Integration
+
+If [Lycanites Mobs](https://www.curseforge.com/minecraft/mc-mods/lycanites-mobs) is installed, structures become **claimed territory** defended by element-matched local ecologies — not just generic zombies and skeletons.
+
+- **Themed guardians by structure family** — Nether fortresses crawl with Afrits, Cinders, and Belphegors. Ocean monuments hide Jengu, Ioray, and the looming Abaia. Caves are stalked by Grues, Trolls, and Darklings. Crypts and strongholds answer with Ghouls, Reapers, and Cryptkeepers. Ancient cities seethe with Shades, Spectres, and Fear. The End and arcane mage towers draw Argus, Astaroth, and Grell.
+- **Scaled by progression** — Weaker creatures haunt early structures; the truly dangerous ones guard late-game sites.
+- **Element-aware elite guardians** — When a Lycanites creature rolls elite, it gains an element-themed title — *Infernal Afrit*, *Frozen Reiver*, *Voidtouched Argus* — and drops bonus XP worthy of the fight.
+- **Respects factions** — Goblin warrens, cultist towers, and peaceful villages are left to their own kind.
+- **Bosses stay special** — Rahovart, Asmodeus, and Amalgalich are never force-spawned.
+
+Entirely optional: the integration is a soft dependency, so packs without Lycanites Mobs are completely unaffected. Toggle theming and tune guardian XP in the config.
+
+---
+
 ## Full Control
 
 Everything is configurable through 60+ options in the server config:
@@ -115,7 +129,7 @@ Enable the full experience:
     enabled = true
     spawnChance = 0.05
 [environmentalEffects]
-    applyDarknessEffect = true
+    applyDarkness = true
     playAmbientSounds = true
 [armor]
     allowDiamond = true
@@ -169,7 +183,7 @@ Runic Structures is the authoritative system for structure-based mob spawning in
 
 - **InControl** handles biome, weather, phase, and underground spawning. RS handles structure spawning. No conflicts.
 - **Majrusz's Difficulty** Expert/Master scaling works alongside RS without stat-stacking -- RS includes health thresholds that skip elite buffs on already-buffed mobs.
-- **45+ boss mobs** blacklisted by default from Cataclysm, BOMD, Mowzie's, Ice & Fire, Stalwart Dungeons, and more.
+- **48+ boss mobs** blacklisted by default from Cataclysm, BOMD, Mowzie's, Ice & Fire, Stalwart Dungeons, Lycanites Mobs, and more.
 - **Boss arenas** (Cataclysm, Stalwart, BOMD) are excluded to preserve their scripted encounters.
 - All other structures -- Dungeons Arise, YUNG's, Medieval Buildings, Moog's, and more -- are runic by default with per-structure tuning.
 
