@@ -47,6 +47,7 @@ public class StructureProfileLoader {
         @Nullable Double shieldChance;
         @Nullable List<String> shieldPool;
         @Nullable Integer enchantmentLevel;
+        @Nullable Boolean darkness;
         @Nullable Boolean miningFatigue;
         @Nullable Boolean slowness;
         @Nullable Boolean ambientSounds;
@@ -225,6 +226,7 @@ public class StructureProfileLoader {
                 validateFraction(raw.shieldChance, structureId, "shieldChance", warnings),
                 shieldPool,
                 validateRange(raw.enchantmentLevel, 0, 5, structureId, "enchantmentLevel", warnings),
+                raw.darkness,
                 raw.miningFatigue,
                 raw.slowness,
                 raw.ambientSounds,

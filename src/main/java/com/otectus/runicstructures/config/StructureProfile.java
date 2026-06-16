@@ -56,7 +56,7 @@ public final class StructureProfile {
             List.of(), List.of(),
             null, List.of(),
             null,
-            null, null, null,
+            null, null, null, null,
             null,
             List.of()
     );
@@ -74,6 +74,7 @@ public final class StructureProfile {
 
     @Nullable private final Integer enchantmentLevel;
 
+    @Nullable private final Boolean darkness;
     @Nullable private final Boolean miningFatigue;
     @Nullable private final Boolean slowness;
     @Nullable private final Boolean ambientSounds;
@@ -92,6 +93,7 @@ public final class StructureProfile {
             @Nullable Double shieldChance,
             @Nullable List<Item> shieldPool,
             @Nullable Integer enchantmentLevel,
+            @Nullable Boolean darkness,
             @Nullable Boolean miningFatigue,
             @Nullable Boolean slowness,
             @Nullable Boolean ambientSounds,
@@ -107,6 +109,7 @@ public final class StructureProfile {
         this.shieldChance = shieldChance;
         this.shieldPool = shieldPool == null ? List.of() : List.copyOf(shieldPool);
         this.enchantmentLevel = enchantmentLevel;
+        this.darkness = darkness;
         this.miningFatigue = miningFatigue;
         this.slowness = slowness;
         this.ambientSounds = ambientSounds;
@@ -132,6 +135,10 @@ public final class StructureProfile {
 
     public int getEnchantmentLevel() {
         return enchantmentLevel != null ? enchantmentLevel : RSConfig.maxEnchantmentLevel.get();
+    }
+
+    public boolean isDarknessEnabled() {
+        return darkness != null ? darkness : RSConfig.applyDarkness.get();
     }
 
     public boolean isMiningFatigueEnabled() {

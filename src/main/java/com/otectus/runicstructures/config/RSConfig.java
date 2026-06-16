@@ -100,6 +100,8 @@ public class RSConfig {
     public static IntValue maxEnchantmentLevel;
 
     // Additional environmental effects
+    public static BooleanValue applyDarkness;
+    public static IntValue darknessAmplifier;
     public static BooleanValue applyMiningFatigue;
     public static IntValue miningFatigueAmplifier;
     public static BooleanValue applySlowness;
@@ -118,6 +120,10 @@ public class RSConfig {
 
     // Progression
     public static BooleanValue progressionScalingEnabled;
+
+    // Lycanites integration
+    public static BooleanValue lycanitesEliteTheming;
+    public static IntValue guardianBonusXP;
 
     // Difficulty scaling
     public static BooleanValue difficultyScalingEnabled;
@@ -162,6 +168,7 @@ public class RSConfig {
         buildEnvironmentalConfig(builder);
         buildEliteConfig(builder);
         buildDifficultyConfig(builder);
+        buildLycanitesConfig(builder);
         SPEC = builder.build();
     }
 
@@ -303,7 +310,10 @@ public class RSConfig {
                                 "dark_doppelganger:dark_doppelganger",
                                 // Majrusz Difficulty
                                 "majruszsdifficulty:cerberus", "majruszsdifficulty:giant",
-                                "majruszsdifficulty:tank"),
+                                "majruszsdifficulty:tank",
+                                // Lycanites Mobs bosses
+                                "lycanitesmobs:rahovart", "lycanitesmobs:asmodeus",
+                                "lycanitesmobs:amalgalich"),
                         o -> o instanceof String s && ResourceLocation.tryParse(s) != null);
 
         mobWhitelist = builder
@@ -634,6 +644,15 @@ public class RSConfig {
         builder.comment("Environmental Effects",
                 "Atmospheric effects applied to players inside runic structures").push("environmentalEffects");
 
+        applyDarkness = builder
+                .comment("Apply the Darkness effect to players inside runic structures",
+                        "Creates a pulsing low-visibility atmosphere in claimed territory")
+                .define("applyDarkness", false);
+
+        darknessAmplifier = builder
+                .comment("Amplifier level for Darkness (0 = level I)")
+                .defineInRange("darknessAmplifier", 0, 0, 4);
+
         applyMiningFatigue = builder
                 .comment("Apply Mining Fatigue to players inside runic structures",
                         "Slows block-breaking, discouraging cheese strategies")
@@ -735,6 +754,23 @@ public class RSConfig {
         hardIntervalMultiplier = builder
                 .comment("Spawn interval multiplier on Hard difficulty (lower = faster spawns)")
                 .defineInRange("hardIntervalMultiplier", 0.85, 0.25, 4.0);
+
+        builder.pop();
+    }
+
+    private static void buildLycanitesConfig(ForgeConfigSpec.Builder builder) {
+        builder.comment("Lycanites Mobs Integration",
+                "Element-aware theming for Lycanites mobs spawned as elites in runic structures").push("lycanites");
+
+        lycanitesEliteTheming = builder
+                .comment("Give Lycanites elite mobs element-themed names (e.g. \"Infernal Afrit\")",
+                        "and tag them as structure guardians (rs_guardian tag)")
+                .define("eliteTheming", true);
+
+        guardianBonusXP = builder
+                .comment("Extra XP dropped by Lycanites structure guardians when killed by a player",
+                        "Added on top of the elite bonus XP")
+                .defineInRange("guardianBonusXP", 50, 0, 500);
 
         builder.pop();
     }
