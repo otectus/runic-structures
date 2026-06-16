@@ -247,6 +247,9 @@ public class TickSpawnHandler {
 
             if (RSConfig.eliteSpawnsEnabled.get() && random.nextDouble() < profile.getEliteChance()) {
                 MobEnhancer.applyEliteEnhancements(mob, profile);
+                if (RSConfig.lycanitesEliteTheming.get()) {
+                    MobEnhancer.applyLycanitesGuardianTheming(mob, profile);
+                }
             }
 
             if (RSConfig.armorEnabled.get()) {

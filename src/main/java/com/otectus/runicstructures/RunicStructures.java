@@ -7,6 +7,7 @@ import com.otectus.runicstructures.config.RSConfig;
 import com.otectus.runicstructures.config.StructureProfileLoader;
 import com.otectus.runicstructures.event.PlayerEffectHandler;
 import com.otectus.runicstructures.event.TickSpawnHandler;
+import com.otectus.runicstructures.util.LycanitesData;
 import com.otectus.runicstructures.util.StructureDetection;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -36,6 +37,7 @@ public class RunicStructures {
 
     public RunicStructures() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RSConfig.SPEC);
+        LycanitesData.load();
     }
 
     @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -77,6 +79,9 @@ public class RunicStructures {
             if (!mob.getTags().contains("rs_elite")) return;
 
             int bonusXP = RSConfig.eliteBonusXP.get();
+            if (mob.getTags().contains("rs_guardian")) {
+                bonusXP += RSConfig.guardianBonusXP.get();
+            }
             if (bonusXP <= 0) return;
 
             if (evt.getEntity().level() instanceof net.minecraft.server.level.ServerLevel level
@@ -163,6 +168,10 @@ public class RunicStructures {
         warnings.addAll(EquipmentPools.getValidationWarnings());
         // Validate structure profiles
         warnings.addAll(StructureProfileLoader.validate(server));
+
+        if (!LycanitesData.isLoaded()) {
+            warnings.add("Lycanites element data failed to load; guardian theming will be inactive");
+        }
 
         return warnings;
     }

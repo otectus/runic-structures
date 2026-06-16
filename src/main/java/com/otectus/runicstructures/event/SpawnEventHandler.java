@@ -69,6 +69,9 @@ public class SpawnEventHandler {
             if (RSConfig.eliteSpawnsEnabled.get()
                     && evt.getLevel().getRandom().nextDouble() < profile.getEliteChance()) {
                 MobEnhancer.applyEliteEnhancements(mob, profile);
+                if (RSConfig.lycanitesEliteTheming.get()) {
+                    MobEnhancer.applyLycanitesGuardianTheming(mob, profile);
+                }
             }
 
             if (RSConfig.armorEnabled.get()) {

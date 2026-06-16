@@ -4,9 +4,11 @@ import com.otectus.runicstructures.config.EquipmentPools;
 import com.otectus.runicstructures.config.RSConfig;
 import com.otectus.runicstructures.config.StructureProfile;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -84,6 +86,28 @@ public class MobEnhancer {
         }
 
         mob.addTag("rs_elite");
+    }
+
+    /**
+     * Apply element-aware guardian theming to a Lycanites elite mob.
+     * Tags it as a structure guardian ({@code rs_guardian}) and, when the creature
+     * has a mapped element, overrides the elite name with an element-themed
+     * adjective (e.g. "Infernal Afrit"). No-op for non-Lycanites mobs; mobs whose
+     * element is unknown keep the generic elite name from
+     * {@link #applyEliteEnhancements}. Call AFTER {@code applyEliteEnhancements}.
+     */
+    public static void applyLycanitesGuardianTheming(Mob mob, StructureProfile profile) {
+        ResourceLocation id = EntityType.getKey(mob.getType());
+        if (!LycanitesData.isLycanites(id)) return;
+
+        mob.addTag("rs_guardian");
+
+        String adjective = LycanitesData.elementAdjective(LycanitesData.getElement(id));
+        if (adjective == null) return;
+
+        mob.setCustomName(Component.translatable("entity.runicstructures.elite_prefix",
+                adjective, mob.getType().getDescription()));
+        mob.setCustomNameVisible(true);
     }
 
     /**
