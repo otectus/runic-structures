@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Lycanites Mobs Integration
+- Structure-territory layer: element-matched Lycanites creatures are blended into per-structure mob pools, scaled by progression tier, across the nether, ocean, cave/mineshaft, crypt/stronghold, ancient-city, end, mage/arcane, and ruins archetypes. Coherent factions (Goblins of Tyranny, cultist towers, Barako village) are intentionally left unchanged.
+- Element-aware guardian theming: Lycanites elites spawned in runic structures gain element-themed names (e.g. "Infernal Afrit", "Frozen Reiver") and an `rs_guardian` tag for downstream systems, with configurable bonus XP (`lycanites.guardianBonusXP`). Toggle via `lycanites.eliteTheming`.
+- Lycanites bosses (Rahovart, Asmodeus, Amalgalich) added to the default mob blacklist so they are never force-spawned.
+- Bundled, soft-dependency design: missing Lycanites IDs resolve gracefully, so packs without Lycanites Mobs are unaffected.
+
+### Fixed
+- Completed the Darkness structure effect: `applyDarkness`/`darknessAmplifier` config and the per-structure `darkness` profile field, which the profile JSON and player-effect handler already referenced.
+
 ## [0.9.0] - 2026-03-28
 
 ### Initial Public Release
