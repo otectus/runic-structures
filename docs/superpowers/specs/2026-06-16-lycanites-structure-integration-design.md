@@ -50,18 +50,32 @@ the repo under `tools/` for reproducibility) that:
 ### Archetype signatures and additions
 
 Detection runs in this priority order (first match wins) because some pools share
-mobs (e.g. ancient city and cave both contain `creature_compendium:moleman`):
+mobs. Two ordering hazards drive the order: ancient city and cave both contain
+`creature_compendium:moleman` (ancient city first); and graveyards/crypts contain
+BOTH `iceandfire:dread_ghoul` AND `minecraft:wither_skeleton`, so every crypt
+signature must precede the blaze-less nether-camp signatures.
 
-| Order | Archetype | Signature mob (must be in pool) | Lycanites additions by tier |
+An archetype may have several signatures (any one matching classifies the pool).
+
+| Order | Archetype | Signature mob(s) (any one, must be in pool) | Lycanites additions by tier |
 |---|---|---|---|
-| 1 | Nether | `minecraft:blaze` | mid: `afrit, cinder, belphegor, salamander, trite` · late: + `cherufe, behemophet, wraith, malwrath, volcan, khalk` |
-| 2 | Ocean/water | `cataclysm:deepling` | early: `skylus, herma, abtu` · mid: + `jengu, ioray, lacedon, roa, thresher` · late: + `abaia` |
-| 3 | End | `cataclysm:endermaptera` | (late/veteran) `argus, astaroth, grell, spectre, trite, naxiris` |
-| 4 | Crypt/stronghold | `cataclysm:draugr` | `ghoul, geist, cryptkeeper, necrovore, banshee, reaper, shade, grue` |
+| 1 | Crypt/stronghold | `cataclysm:draugr`, `iceandfire:dread_ghoul`, `irons_spellbooks:catacombs_zombie` | `ghoul, geist, cryptkeeper, necrovore, banshee, reaper, shade, grue` |
+| 2 | Nether | `minecraft:blaze` | mid: `afrit, cinder, belphegor, salamander, trite` · late: + `cherufe, behemophet, wraith, malwrath, volcan, khalk` |
+| 3 | Ocean/water | `cataclysm:deepling` | early: `skylus, herma, abtu` · mid: + `jengu, ioray, lacedon, roa, thresher` · late: + `abaia` |
+| 4 | End | `cataclysm:endermaptera` | (late/veteran) `argus, astaroth, grell, spectre, trite, naxiris` |
 | 5 | Ancient city | `minecraft:phantom` | `grue, shade, fear, spectre, banshee, epion, darkling` |
-| 6 | Illager | `irons_spellbooks:magehunter_vindicator` | **none** — no thematic match; respects village/illager restraint |
-| 7 | Cave/mineshaft | `creature_compendium:moleman` | early: `darkling, gnekk, gorgomite, eyewig` · mid: + `grue, troll, maug, geonach, shade, chupacabra` · late: + `wraamon, tremor` |
-| 8 | Early-generic ruins | `variantsandventures:gelid` | `conba, lycosa, ghoul` (light, low-threat) |
+| 6 | Mage/arcane | `ars_nouveau:wilden_guardian`, `irons_spellbooks:archevoker` | `argus, naxiris, grell, sutiramu` (arcane/eldritch guardians) |
+| 7 | Nether camps | `minecraft:piglin_brute`, `minecraft:wither_skeleton`, `cataclysm:ignited_berserker` | (same as Nether, default tier `mid`) |
+| 8 | Illager | `irons_spellbooks:magehunter_vindicator` | **none** — no thematic match; respects village/illager restraint |
+| 9 | Cave/mineshaft | `creature_compendium:moleman` | early: `darkling, gnekk, gorgomite, eyewig` · mid: + `grue, troll, maug, geonach, shade, chupacabra` · late: + `wraamon, tremor` |
+| 10 | Early-generic ruins | `variantsandventures:gelid` | `conba, lycosa, ghoul` (light, low-threat) |
+
+Pools matching no signature are left unchanged and logged. With the current pack
+this leaves 10 entries untouched — all coherent factions or signature-ambiguous:
+the Goblins of Tyranny faction (5), `mowziesmobs:barako_village`,
+`ba_bt:land_tower`/`ocean_tower` (mixed cultist), and `mtr:desert_temple`/
+`jungle_temple` (no signature distinct from the late `ba_bt` towers). This honors
+the doc's faction/village restraint rule.
 
 Notes:
 - All IDs are prefixed `lycanitesmobs:` when written.

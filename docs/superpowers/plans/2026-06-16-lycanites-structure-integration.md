@@ -187,7 +187,9 @@ if __name__ == "__main__":
 - [ ] **Step 2: Run the generator**
 
 Run: `cd /home/joshua/Documents/GitHub/runic-structures && python3 tools/lycanites_integration.py`
-Expected output (counts may vary slightly): `elements: wrote 122 creatures`, then `structures: matched {...}, unmatched (0): []` (or a short unmatched list of pools with no signature), then `done`. The script asserts no boss ID leaked into any pool and that the output re-parses.
+Expected output: `elements: wrote 122 creatures`, then `structures: matched {'crypt': 21, 'nether': 54, 'ocean': 14, 'illager': 13, 'ancient_city': 1, 'early': 63, 'end': 8, 'cave': 41, 'mage': 13}, unmatched (10): [...goblins/barako/ba_bt/mtr...]`, then `done`. The 10 unmatched are intentional (coherent factions or signature-ambiguous). The script asserts no boss ID leaked into any pool and that the output re-parses.
+
+Note: the committed `tools/lycanites_integration.py` is the source of truth for the exact `SIGNATURES` / `ADDITIONS` / `DEFAULT_TIER` tables (it includes the crypt-variant + nether-camp signatures and the `mage` archetype documented in the spec). The code block above shows the structure; defer to the committed file.
 
 - [ ] **Step 3: Verify the generated files**
 

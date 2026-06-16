@@ -1,0 +1,393 @@
+{
+ "lycanitesmobs:abaia": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:abtu": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:aegis": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:afrit": {
+  "element": "fire",
+  "type": "imp"
+ },
+ "lycanitesmobs:aglebemu": {
+  "type": "amphibian"
+ },
+ "lycanitesmobs:amalgalich": {
+  "element": "nether",
+  "type": "undead"
+ },
+ "lycanitesmobs:apollyon": {
+  "element": "fire",
+  "type": "demon"
+ },
+ "lycanitesmobs:argus": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:arisaur": {
+  "type": "reptile"
+ },
+ "lycanitesmobs:arix": {
+  "type": "imp"
+ },
+ "lycanitesmobs:asmodeus": {
+  "type": "aberration"
+ },
+ "lycanitesmobs:aspid": {
+  "type": "reptile"
+ },
+ "lycanitesmobs:astaroth": {
+  "type": "aberration"
+ },
+ "lycanitesmobs:balayang": {
+  "element": "shadow",
+  "type": "beast"
+ },
+ "lycanitesmobs:banshee": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:barghest": {
+  "type": "beast"
+ },
+ "lycanitesmobs:behemophet": {
+  "type": "demon"
+ },
+ "lycanitesmobs:belphegor": {
+  "type": "demon"
+ },
+ "lycanitesmobs:bobeko": {
+  "type": "beast"
+ },
+ "lycanitesmobs:brucha": {
+  "type": "beast"
+ },
+ "lycanitesmobs:calpod": {
+  "type": "insect"
+ },
+ "lycanitesmobs:cephignis": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:cherufe": {
+  "element": "lava",
+  "type": "golem"
+ },
+ "lycanitesmobs:chupacabra": {
+  "type": "beast"
+ },
+ "lycanitesmobs:cinder": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:clink": {
+  "type": "imp"
+ },
+ "lycanitesmobs:cockatrice": {
+  "element": "arcane",
+  "type": "dragon"
+ },
+ "lycanitesmobs:conba": {
+  "type": "beast"
+ },
+ "lycanitesmobs:concapede": {
+  "type": "insect"
+ },
+ "lycanitesmobs:concapedesegment": {
+  "type": "insect"
+ },
+ "lycanitesmobs:crusk": {
+  "type": "worm"
+ },
+ "lycanitesmobs:cryptkeeper": {
+  "type": "undead"
+ },
+ "lycanitesmobs:darkling": {
+  "type": "insect"
+ },
+ "lycanitesmobs:dawon": {
+  "element": "quake",
+  "type": "beast"
+ },
+ "lycanitesmobs:eechetik": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:ent": {
+  "type": "plant"
+ },
+ "lycanitesmobs:epion": {
+  "element": "shadow",
+  "type": "beast"
+ },
+ "lycanitesmobs:erepede": {
+  "type": "insect"
+ },
+ "lycanitesmobs:ettin": {
+  "type": "anthronian"
+ },
+ "lycanitesmobs:eyewig": {
+  "element": "poison",
+  "type": "insect"
+ },
+ "lycanitesmobs:fear": {},
+ "lycanitesmobs:feradon": {
+  "type": "beast"
+ },
+ "lycanitesmobs:frostweaver": {
+  "type": "arachnid"
+ },
+ "lycanitesmobs:geist": {
+  "type": "undead"
+ },
+ "lycanitesmobs:geken": {
+  "element": "air",
+  "type": "reptile"
+ },
+ "lycanitesmobs:geonach": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:ghoul": {
+  "type": "undead"
+ },
+ "lycanitesmobs:gnekk": {
+  "element": "poison",
+  "type": "imp"
+ },
+ "lycanitesmobs:gorgomite": {
+  "type": "insect"
+ },
+ "lycanitesmobs:grell": {
+  "type": "aberration"
+ },
+ "lycanitesmobs:grigori": {
+  "type": "aberration"
+ },
+ "lycanitesmobs:grue": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:herma": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:ignibus": {
+  "type": "dragon"
+ },
+ "lycanitesmobs:ika": {
+  "type": "worm"
+ },
+ "lycanitesmobs:ioray": {
+  "element": "arcane",
+  "type": "aquatic"
+ },
+ "lycanitesmobs:jabberwock": {
+  "type": "beast"
+ },
+ "lycanitesmobs:jengu": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:jouste": {
+  "type": "insect"
+ },
+ "lycanitesmobs:joustealpha": {
+  "type": "insect"
+ },
+ "lycanitesmobs:kathoga": {
+  "type": "demon"
+ },
+ "lycanitesmobs:khalk": {
+  "type": "reptile"
+ },
+ "lycanitesmobs:kobold": {
+  "element": "order",
+  "type": "beast"
+ },
+ "lycanitesmobs:krake": {
+  "element": "arcane",
+  "type": "aberration"
+ },
+ "lycanitesmobs:lacedon": {
+  "element": "water",
+  "type": "aquatic"
+ },
+ "lycanitesmobs:lycosa": {
+  "type": "arachnid"
+ },
+ "lycanitesmobs:maka": {
+  "type": "beast"
+ },
+ "lycanitesmobs:makaalpha": {
+  "type": "beast"
+ },
+ "lycanitesmobs:malwrath": {
+  "type": "demon"
+ },
+ "lycanitesmobs:maug": {
+  "type": "beast"
+ },
+ "lycanitesmobs:morock": {
+  "element": "quake",
+  "type": "dragon"
+ },
+ "lycanitesmobs:naxiris": {
+  "element": "arcane",
+  "type": "aberration"
+ },
+ "lycanitesmobs:necrovore": {
+  "type": "undead"
+ },
+ "lycanitesmobs:ningen": {
+  "type": "amphibian"
+ },
+ "lycanitesmobs:nymph": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:ostimien": {
+  "element": "poison",
+  "type": "insect"
+ },
+ "lycanitesmobs:pixen": {
+  "type": "imp"
+ },
+ "lycanitesmobs:quetzodracl": {
+  "type": "dragon"
+ },
+ "lycanitesmobs:rahovart": {
+  "type": "demon"
+ },
+ "lycanitesmobs:raidra": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:raiko": {
+  "type": "avian"
+ },
+ "lycanitesmobs:reaper": {
+  "element": "phase",
+  "type": "undead"
+ },
+ "lycanitesmobs:reiver": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:remobra": {
+  "type": "dragon"
+ },
+ "lycanitesmobs:roa": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:roc": {
+  "type": "avian"
+ },
+ "lycanitesmobs:salamander": {
+  "type": "amphibian"
+ },
+ "lycanitesmobs:serpix": {
+  "type": "worm"
+ },
+ "lycanitesmobs:shade": {
+  "type": "aberration"
+ },
+ "lycanitesmobs:shambler": {
+  "type": "plant"
+ },
+ "lycanitesmobs:silex": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:skylus": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:spectre": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:spriggan": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:stryder": {
+  "type": "aquatic"
+ },
+ "lycanitesmobs:sutiramu": {
+  "element": "arcane",
+  "type": "arachnid"
+ },
+ "lycanitesmobs:sylph": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:thresher": {
+  "type": "reptile"
+ },
+ "lycanitesmobs:tpumpkyn": {
+  "type": "plant"
+ },
+ "lycanitesmobs:treant": {
+  "element": "arbour",
+  "type": "plant"
+ },
+ "lycanitesmobs:tremor": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:triffid": {
+  "type": "plant"
+ },
+ "lycanitesmobs:trite": {
+  "type": "aberration"
+ },
+ "lycanitesmobs:troll": {
+  "element": "earth",
+  "type": "anthronian"
+ },
+ "lycanitesmobs:umibas": {
+  "type": "worm"
+ },
+ "lycanitesmobs:uvaraptor": {
+  "element": "air",
+  "type": "avian"
+ },
+ "lycanitesmobs:vapula": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:ventoraptor": {
+  "element": "air",
+  "type": "avian"
+ },
+ "lycanitesmobs:vespid": {
+  "type": "insect"
+ },
+ "lycanitesmobs:vespidqueen": {
+  "element": "poison",
+  "type": "insect"
+ },
+ "lycanitesmobs:volcan": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:vorach": {
+  "element": "fae",
+  "type": "demon"
+ },
+ "lycanitesmobs:warg": {
+  "element": "shadow",
+  "type": "beast"
+ },
+ "lycanitesmobs:wendigo": {
+  "type": "undead"
+ },
+ "lycanitesmobs:wildkin": {
+  "type": "anthronian"
+ },
+ "lycanitesmobs:wisp": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:wraamon": {
+  "type": "beast"
+ },
+ "lycanitesmobs:wraith": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:xaphan": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:yale": {
+  "type": "aberration"
+ },
+ "lycanitesmobs:zephyr": {
+  "type": "elemental"
+ },
+ "lycanitesmobs:zoataur": {
+  "type": "dragon"
+ }
+}
