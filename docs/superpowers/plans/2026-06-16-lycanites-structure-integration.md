@@ -79,7 +79,7 @@ ADDITIONS = {
     },
     "cave": {
         "early": ["darkling", "gnekk", "gorgomite", "eyewig"],
-        "mid": ["grue", "troll", "maug", "geonach", "shade", "chupacabra"],
+        "mid": ["grue", "troll", "maug", "geonach", "shade"],
         "late": ["wraamon", "tremor"],
     },
     "crypt": {"_all": ["ghoul", "geist", "cryptkeeper", "necrovore", "banshee", "reaper", "shade", "grue"]},

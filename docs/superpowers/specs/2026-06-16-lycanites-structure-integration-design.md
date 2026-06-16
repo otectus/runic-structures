@@ -47,6 +47,12 @@ the repo under `tools/` for reproducibility) that:
 5. Writes back minified, preserving all other fields and `_section_*`/`_comment`
    keys.
 
+The generator is **idempotent** (it strips existing `lycanitesmobs:` entries from
+each pool before re-adding, so it can run on its own output) and **asserts** that
+no addition is a Lycanites boss or a `peaceful` creature (peaceful creatures are
+CREATURE-category and would spawn passively — not valid hostile guardians). The
+`peaceful` flag is read from the Lycanites source at generation time.
+
 ### Archetype signatures and additions
 
 Detection runs in this priority order (first match wins) because some pools share
@@ -67,7 +73,7 @@ An archetype may have several signatures (any one matching classifies the pool).
 | 6 | Mage/arcane | `ars_nouveau:wilden_guardian`, `irons_spellbooks:archevoker` | `argus, naxiris, grell, sutiramu` (arcane/eldritch guardians) |
 | 7 | Nether camps | `minecraft:piglin_brute`, `minecraft:wither_skeleton`, `cataclysm:ignited_berserker` | (same as Nether, default tier `mid`) |
 | 8 | Illager | `irons_spellbooks:magehunter_vindicator` | **none** — no thematic match; respects village/illager restraint |
-| 9 | Cave/mineshaft | `creature_compendium:moleman` | early: `darkling, gnekk, gorgomite, eyewig` · mid: + `grue, troll, maug, geonach, shade, chupacabra` · late: + `wraamon, tremor` |
+| 9 | Cave/mineshaft | `creature_compendium:moleman` | early: `darkling, gnekk, gorgomite, eyewig` · mid: + `grue, troll, maug, geonach, shade` · late: + `wraamon, tremor` |
 | 10 | Early-generic ruins | `variantsandventures:gelid` | `conba, lycosa, ghoul` (light, low-threat) |
 
 Pools matching no signature are left unchanged and logged. With the current pack

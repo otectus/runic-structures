@@ -67,7 +67,7 @@ ADDITIONS = {
     },
     "cave": {
         "early": ["darkling", "gnekk", "gorgomite", "eyewig"],
-        "mid": ["grue", "troll", "maug", "geonach", "shade", "chupacabra"],
+        "mid": ["grue", "troll", "maug", "geonach", "shade"],
         "late": ["wraamon", "tremor"],
     },
     "crypt": {"_all": ["ghoul", "geist", "cryptkeeper", "necrovore", "banshee", "reaper", "shade", "grue"]},
@@ -80,6 +80,18 @@ ADDITIONS = {
 }
 
 BOSSES = {"rahovart", "asmodeus", "amalgalich"}
+
+
+def peaceful_creatures():
+    """Names of creatures flagged peaceful in the Lycanites source — these are
+    CREATURE-category (passive) and must never be used as hostile guardians."""
+    out = set()
+    for path in glob.glob(os.path.join(LYC_CREATURES, "*.json")):
+        with open(path, encoding="utf-8") as f:
+            d = json.load(f)
+        if d.get("peaceful"):
+            out.add(os.path.basename(path)[:-5])
+    return out
 
 
 def classify(pool):
@@ -105,6 +117,13 @@ def additions_for(archetype, tier):
 
 
 def regen_structures():
+    peaceful = peaceful_creatures()
+    for arch, spec in ADDITIONS.items():
+        for tier_mobs in spec.values():
+            for name in tier_mobs:
+                assert name not in peaceful, f"{name} ({arch}) is peaceful; not a valid hostile guardian"
+                assert name not in BOSSES, f"{name} ({arch}) is a boss; never add to a pool"
+
     with open(STRUCT_JSON, encoding="utf-8") as f:
         root = json.load(f)
     structures = root["structures"] if "structures" in root else root
@@ -117,6 +136,10 @@ def regen_structures():
         pool = entry.get("mobPool")
         if not pool:
             continue
+        # Idempotent: drop any previously-added Lycanites entries before re-adding,
+        # so the generator produces identical output whether run on the pristine
+        # file or on its own output (it only ever adds lycanitesmobs: IDs).
+        pool[:] = [m for m in pool if not m.startswith("lycanitesmobs:")]
         arch = classify(pool)
         if arch is None:
             unmatched.append(key)
